@@ -5,7 +5,7 @@ CREATE TABLE orders (
 
     quantity INT NOT NULL,
     total_price DECIMAL(10,2),
-    total_ml INT,
+    totalMilliliters INT,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -13,6 +13,5 @@ CREATE TABLE orders (
         FOREIGN KEY (product_id) REFERENCES products(id),
 
     CONSTRAINT fk_order_variant
-        FOREIGN KEY (variant_id) REFERENCES product_variants(id)
+        FOREIGN KEY (variant_id) REFERENCES product_variant(id)
 );
-
