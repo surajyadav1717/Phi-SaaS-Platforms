@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "product_variants")
+@Table(name = "product_variant")
 public class ProductVariant {
 
 

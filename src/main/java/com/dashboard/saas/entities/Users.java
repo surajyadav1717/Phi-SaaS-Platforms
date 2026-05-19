@@ -2,12 +2,11 @@ package com.dashboard.saas.entities;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users_info")
 public class Users {
 
     @Id
@@ -20,7 +19,7 @@ public class Users {
     private String email;
 
     @Column(unique = true)
-    private String mobile;
+    private Long mobileNumber;
 
     private String password;
 
@@ -31,11 +30,11 @@ public class Users {
     public Users() {
     }
 
-    public Users(Long id, String name, String email, String mobile, String password, LocalDateTime createdAt) {
+    public Users(Long id, String name, String email, Long mobileNumber, String password, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.mobile = mobile;
+        this.mobileNumber = mobileNumber;
         this.password = password;
         this.createdAt = createdAt;
     }
@@ -64,12 +63,12 @@ public class Users {
         this.email = email;
     }
 
-    public String getMobile() {
-        return mobile;
+    public Long getMobileNumber() {
+        return mobileNumber;
     }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
+    public void setMobileNumber(Long mobileNumber) {
+        this.mobileNumber = mobileNumber;
     }
 
     public String getPassword() {
