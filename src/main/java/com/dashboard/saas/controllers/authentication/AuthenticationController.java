@@ -1,5 +1,7 @@
 package com.dashboard.saas.controllers.authentication;
 
+import com.dashboard.saas.dtos.authentication.LoginRequestDTO;
+import com.dashboard.saas.dtos.authentication.LoginResponseDTO;
 import com.dashboard.saas.dtos.authentication.RegisterRequestDTO;
 import com.dashboard.saas.dtos.authentication.RegisterResponseDTO;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
@@ -26,4 +28,13 @@ public class AuthenticationController {
         RegisterResponseDTO response = authenticationService.registerUsers(request);
         return new BaseAPIResponse<>("User Register Successfully",response, true);
     }
+
+    @PostMapping("/login")
+    public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request) {
+
+        LoginResponseDTO response = authenticationService.loginUsers(request);
+        return new BaseAPIResponse<>("User Login  Register Successfully",response, true);
+    }
+
+
 }
