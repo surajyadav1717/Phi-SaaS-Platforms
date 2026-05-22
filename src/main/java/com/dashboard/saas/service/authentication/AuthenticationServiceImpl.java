@@ -10,6 +10,9 @@ import com.dashboard.saas.security.JwtTokenProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Service
 public class AuthenticationServiceImpl implements  AuthenticationService{
 
@@ -89,6 +92,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
                         user.getName()
                 );
 
+        Date expiry =
+                jwtTokenProvider.getTokenExpiration(accessToken);
+
         // STEP 4 → PREPARE RESPONSE
         LoginResponseDTO response =
                 new LoginResponseDTO();
@@ -97,6 +103,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
         response.setUserId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getName());
+        response.setExpiresAt(expiry);
 
         return response;
     }

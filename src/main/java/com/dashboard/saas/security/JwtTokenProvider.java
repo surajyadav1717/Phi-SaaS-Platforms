@@ -170,6 +170,7 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             throw new RuntimeException("Error extracting full name from JWT token: " + e.getMessage(), e);
         }
+
     }
 
     public String getTokenSubject(String token) {

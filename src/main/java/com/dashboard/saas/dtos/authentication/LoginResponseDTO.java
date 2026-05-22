@@ -1,10 +1,11 @@
 package com.dashboard.saas.dtos.authentication;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 public class LoginResponseDTO {
 
     private String accessToken;
-
-    private String tokenType = "Bearer";
 
     private Long userId;
 
@@ -12,7 +13,7 @@ public class LoginResponseDTO {
 
     private String fullName;
 
-    private String expirationTime;
+    private Date expiresAt;
 
     // DEFAULT CONSTRUCTOR
     public LoginResponseDTO() {
@@ -24,9 +25,6 @@ public class LoginResponseDTO {
         return accessToken;
     }
 
-    public String getTokenType() {
-        return tokenType;
-    }
 
     public Long getUserId() {
         return userId;
@@ -46,9 +44,6 @@ public class LoginResponseDTO {
         this.accessToken = accessToken;
     }
 
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
-    }
 
     public void setUserId(Long userId) {
         this.userId = userId;
@@ -62,12 +57,11 @@ public class LoginResponseDTO {
         this.fullName = fullName;
     }
 
-    public String expirationTime() {
-        return expirationTime;
+    public Date getExpiresAt() {
+        return expiresAt;
     }
 
-    public LoginResponseDTO setExpirationTime(String expirationTime) {
-        this.expirationTime = expirationTime;
-        return this;
+    public void setExpiresAt(Date expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }

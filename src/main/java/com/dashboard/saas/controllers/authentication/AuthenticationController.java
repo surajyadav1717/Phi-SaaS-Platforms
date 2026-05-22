@@ -33,7 +33,7 @@ public class AuthenticationController {
     public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request) {
 
         LoginResponseDTO response = authenticationService.loginUsers(request);
-        return new BaseAPIResponse<>("User Login  Register Successfully",response, true);
+        return new BaseAPIResponse<>("User Login  Successfully",response, true);
     }
 
 

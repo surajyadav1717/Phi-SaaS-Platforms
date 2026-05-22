@@ -7,6 +7,8 @@ import com.dashboard.saas.service.CategoryService;
 import com.dashboard.saas.service.ProductService;
 import com.dashboard.saas.service.ProductVariantService;
 import java.util.List;
+
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +36,7 @@ public class CategoryController {
 
 
     @PostMapping("/create-product-category")
-    public BaseAPIResponse<ProductResponseDTO> createProduct(@RequestBody ProductRequestDTO request) {
+    public BaseAPIResponse<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO request) {
 
         ProductResponseDTO response = productService.createProduct(request);
         return new BaseAPIResponse<>("Product created successfully",response, true);
