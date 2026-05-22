@@ -86,8 +86,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
                 jwtTokenProvider.generateToken(
                         user.getId(),
                         user.getEmail(),
-                        user.getName(),
-                        user.
+                        user.getName()
                 );
 
         // STEP 4 → PREPARE RESPONSE
@@ -98,7 +97,6 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
         response.setUserId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getName());
-        response.setExpirationTime(user.get)
 
         return response;
     }
