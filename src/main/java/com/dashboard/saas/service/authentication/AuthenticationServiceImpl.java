@@ -7,12 +7,14 @@ import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
 import org.apache.catalina.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthenticationServiceImpl implements  AuthenticationService {
@@ -32,6 +34,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
+
+    @Value("${app.jwt.refresh-token-expiration-ms}")
+    private Long refreshTokenExpiration;
 
     @Override
     public RegisterResponseDTO registerUsers(RegisterRequestDTO request) {
@@ -97,19 +102,28 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                 );
 
         // STEP 4 → GENERATE REFRESH TOKEN
-        String refreshToken =
-                jwtTokenProvider.generateRefreshToken(
-                        user.getId()
-                );
+//        String refreshToken =
+//                jwtTokenProvider.generateRefreshToken(
+//                        user.getId()
+//                );
 
         // STEP 5 → SAVE REFRESH TOKEN IN DB
+
+        String refreshToken = UUID.randomUUID().toString();
         RefreshToken refreshTokenEntity =
                 new RefreshToken();
 
         refreshTokenEntity.setRefreshToken(refreshToken);
         refreshTokenEntity.setUser(user);
+
+//        refreshTokenEntity.setExpiryDate(
+//                LocalDateTime.now().plusDays(7)
+//        );
         refreshTokenEntity.setExpiryDate(
-                LocalDateTime.now().plusDays(7)
+                LocalDateTime.now()
+                        .plusSeconds(
+                                refreshTokenExpiration / 1000
+                        )
         );
         refreshTokenEntity.setRevoked(false);
 
@@ -205,14 +219,14 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
             throw  new RuntimeException("Refresh Token Expired");
         }
 
-        boolean  valid=jwtTokenProvider.validateToken(
-                request.getRefreshToken()
-        );
-
-        if(!valid){
-
-            throw new RuntimeException("Invalid Refresh Token");
-        }
+//        boolean  valid=jwtTokenProvider.validateToken(
+//                request.getRefreshToken()
+//        );
+//
+//        if(!valid){
+//
+//            throw new RuntimeException("Invalid Refresh Token");
+//        }
 
         Users user =
                 refreshTokenEntity.get().getUser();
@@ -233,6 +247,17 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         responseDTO.setEmail(user.getEmail());
         responseDTO.setFullName(user.getName());
         return responseDTO;
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+
+        RefreshToken refreshTokenLogout =refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(()->
+                        new RuntimeException("Refresh Token Not Found"));
+
+        refreshTokenLogout.setRevoked(true);
+        refreshTokenRepository.save(refreshTokenLogout);
     }
 }
 

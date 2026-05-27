@@ -8,7 +8,7 @@ public interface AuthenticationService {
 
     public LoginResponseDTO loginUsers(LoginRequestDTO loginRequestDTO);
 
-//    public LoginResponseDTO refreshToken(LoginRequestDTO responseDTO);
-
     public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request);
+
+    public void logout(String refreshToken);
 }
