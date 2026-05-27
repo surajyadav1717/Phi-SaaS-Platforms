@@ -1,6 +1,4 @@
 package com.dashboard.saas.security;
-
-
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
@@ -8,11 +6,8 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 
@@ -27,6 +22,10 @@ public class JwtTokenProvider {
 
     @Value("${app.jwt.access-token-expiration-ms}")
     private Long jwtAccessTokenExpirationInMs;
+
+    @Value("${app.jwt.refresh-token-expiration-ms}")
+    private Long jwtRefreshTokenExpirationInMs;
+
 
 
     public String getJwtSecret() {
@@ -53,8 +52,14 @@ public class JwtTokenProvider {
         this.jwtAccessTokenExpirationInMs = jwtAccessTokenExpirationInMs;
     }
 
+    public Long getJwtRefreshTokenExpirationInMs() {
+        return jwtRefreshTokenExpirationInMs;
+    }
 
-    // Generate JWT token, validate token, extract claims, etc. can be implemented here as needed.
+    public void setJwtRefreshTokenExpirationInMs(Long jwtRefreshTokenExpirationInMs) {
+        this.jwtRefreshTokenExpirationInMs = jwtRefreshTokenExpirationInMs;
+    }
+// Generate JWT token, validate token, extract claims, etc. can be implemented here as needed.
 
     public String generateToken(Long userId,
                                 String email,
@@ -117,7 +122,64 @@ public class JwtTokenProvider {
 
     }
 
+    public String generateRefreshToken(Long userId) {
 
+        try {
+
+            Date now = new Date();
+
+            Date expiryDate =
+                    new Date(now.getTime() + jwtRefreshTokenExpirationInMs);
+
+            // CLAIMS
+            JWTClaimsSet claimsSet =
+                    new JWTClaimsSet.Builder()
+                            .subject(String.valueOf(userId))
+                            .issueTime(now)
+                            .expirationTime(expiryDate)
+                            .build();
+
+            // SIGN JWT
+            SignedJWT signedJWT =
+                    new SignedJWT(
+                            new JWSHeader(JWSAlgorithm.HS256),
+                            claimsSet
+                    );
+
+            JWSSigner signer =
+                    new MACSigner(jwtSecret);
+
+            signedJWT.sign(signer);
+
+            // ENCRYPT JWT
+            JWEObject jweObject =
+                    new JWEObject(
+                            new JWEHeader.Builder(
+                                    JWEAlgorithm.DIR,
+                                    EncryptionMethod.A256CBC_HS512
+                            ).contentType("JWT").build(),
+
+                            new Payload(signedJWT)
+                    );
+
+            byte[] encryptionKey =
+                    Base64.getDecoder()
+                            .decode(jwtEncryptionKey);
+
+            jweObject.encrypt(
+                    new DirectEncrypter(encryptionKey)
+            );
+
+            return jweObject.serialize();
+
+        } catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Error generating refresh token",
+                    e
+            );
+        }
+    }
     //validate token
 
     public boolean validateToken(String token) {
@@ -170,6 +232,7 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             throw new RuntimeException("Error extracting full name from JWT token: " + e.getMessage(), e);
         }
+
     }
 
     public String getTokenSubject(String token) {

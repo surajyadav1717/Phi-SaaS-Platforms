@@ -48,6 +48,7 @@ public class ProductServiceImpl implements ProductService {
             ProductResponseDTO response = new ProductResponseDTO();
 
             response.setId(saved.getId());
+            System.out.println(saved.getName()+"saved name");
             response.setName(saved.getName());
             response.setBrand(saved.getBrand());
             response.setCreatedAt(saved.getCreatedAt());

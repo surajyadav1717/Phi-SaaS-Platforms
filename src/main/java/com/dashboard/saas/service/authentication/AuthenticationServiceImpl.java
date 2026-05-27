@@ -1,28 +1,35 @@
 package com.dashboard.saas.service.authentication;
 
-import com.dashboard.saas.dtos.authentication.LoginRequestDTO;
-import com.dashboard.saas.dtos.authentication.LoginResponseDTO;
-import com.dashboard.saas.dtos.authentication.RegisterRequestDTO;
-import com.dashboard.saas.dtos.authentication.RegisterResponseDTO;
+import com.dashboard.saas.dtos.authentication.*;
+import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
+import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
+import org.apache.catalina.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Optional;
+
 @Service
-public class AuthenticationServiceImpl implements  AuthenticationService{
+public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
 
-    private final JwtTokenProvider jwtTokenProvider ;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    private final RefreshTokenRepository refreshTokenRepository;
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
 
@@ -66,14 +73,14 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
 
         // STEP 1 → FIND USER
         Users user = userRepository
-                .findByEmail(loginRequestDTO.email())
+                .findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(() ->
                         new RuntimeException("Invalid Email"));
 
         // STEP 2 → MATCH PASSWORD
         boolean passwordMatched =
                 passwordEncoder.matches(
-                        loginRequestDTO.password(),
+                        loginRequestDTO.getPassword(),
                         user.getPassword()
                 );
 
@@ -81,25 +88,151 @@ public class AuthenticationServiceImpl implements  AuthenticationService{
             throw new RuntimeException("Invalid Password");
         }
 
-        // STEP 3 → GENERATE TOKEN
+        // STEP 3 → GENERATE ACCESS TOKEN
         String accessToken =
                 jwtTokenProvider.generateToken(
                         user.getId(),
                         user.getEmail(),
-                        user.getName(),
-                        user.
+                        user.getName()
                 );
 
-        // STEP 4 → PREPARE RESPONSE
+        // STEP 4 → GENERATE REFRESH TOKEN
+        String refreshToken =
+                jwtTokenProvider.generateRefreshToken(
+                        user.getId()
+                );
+
+        // STEP 5 → SAVE REFRESH TOKEN IN DB
+        RefreshToken refreshTokenEntity =
+                new RefreshToken();
+
+        refreshTokenEntity.setRefreshToken(refreshToken);
+        refreshTokenEntity.setUser(user);
+        refreshTokenEntity.setExpiryDate(
+                LocalDateTime.now().plusDays(7)
+        );
+        refreshTokenEntity.setRevoked(false);
+
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        // STEP 6 → GET ACCESS TOKEN EXPIRY
+        Date expiry =
+                jwtTokenProvider.getTokenExpiration(accessToken);
+
+        // STEP 7 → PREPARE RESPONSE
         LoginResponseDTO response =
                 new LoginResponseDTO();
 
         response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
         response.setUserId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getName());
-        response.setExpirationTime(user.get)
+        response.setExpiresAt(expiry);
 
         return response;
     }
+   // @Override
+//    public LoginResponseDTO refreshToken(LoginRequestDTO loginRequestDTO) {
+//
+//        Optional<Users> user = Optional.ofNullable(userRepository.findByEmail(loginRequestDTO.getEmail())
+//                .orElseThrow(() -> new RuntimeException("Invalid Email")));
+//
+//        Users users = new Users(Optional.of(user.get()));
+//
+//
+//        boolean passwordMatches =
+//                passwordEncoder.matches(
+//                        loginRequestDTO.getPassword(),
+//                        users.getPassword()
+//                );
+//
+//        if (!passwordMatches) {
+//
+//            throw new RuntimeException("Invalid Password");
+//        }
+//        ;
+//
+//        String accessToken = jwtTokenProvider.generateToken(
+//                users.getId(),
+//                users.getEmail(),
+//                users.getName()
+//        );
+//
+//        String refreshToken = jwtTokenProvider.generateRefreshToken(
+//                user.get().getId()
+//
+//        );
+//
+//        RefreshToken refreshTokenEntity = new RefreshToken();
+//        refreshTokenEntity.setRefresh_token(refreshToken);
+//        refreshTokenEntity.setUser(users);
+//        refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
+//
+//        refreshTokenEntity.setRevoked(false);
+//        refreshTokenRepository.save(refreshTokenEntity);
+//
+//
+//        LoginResponseDTO  responseDTO = new LoginResponseDTO();
+//
+//        responseDTO.setAccessToken(accessToken);
+//        responseDTO.setRefreshToken(refreshToken);
+//
+//
+//        responseDTO.setExpiresAt(
+//                jwtTokenProvider.getTokenExpiration(accessToken)
+//        );
+//        responseDTO.setUserId(users.getId());
+//        responseDTO.setEmail(users.getEmail());
+//        responseDTO.setFullName(users.getName());
+//        return responseDTO;
+//    }
+
+    @Override
+    public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request) {
+
+        Optional<RefreshToken> refreshTokenEntity = Optional.ofNullable(refreshTokenRepository
+                .findByRefreshToken(request.getRefreshToken()
+                ).orElseThrow(() -> new RuntimeException("Refresh Token Not Found")));
+
+        if (refreshTokenEntity.get().getRevoked()) {
+
+            throw new RuntimeException("Refresh Token Revoked");
+        }
+
+        if(refreshTokenEntity.get().getExpiryDate().isBefore(LocalDateTime.now())){
+
+            throw  new RuntimeException("Refresh Token Expired");
+        }
+
+        boolean  valid=jwtTokenProvider.validateToken(
+                request.getRefreshToken()
+        );
+
+        if(!valid){
+
+            throw new RuntimeException("Invalid Refresh Token");
+        }
+
+        Users user =
+                refreshTokenEntity.get().getUser();
+
+        String newAccessToken =
+                jwtTokenProvider.generateToken(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName()
+                );
+
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+
+        responseDTO.setAccessToken(newAccessToken);
+        responseDTO.setRefreshToken(request.getRefreshToken());
+        responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(newAccessToken));
+        responseDTO.setUserId(user.getId());
+        responseDTO.setEmail(user.getEmail());
+        responseDTO.setFullName(user.getName());
+        return responseDTO;
+    }
 }
+

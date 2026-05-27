@@ -6,21 +6,27 @@ public class LoginRequestDTO {
 
     private String password;
 
-    public String email() {
+    public LoginRequestDTO() {
+    }
+
+    public LoginRequestDTO(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getEmail() {
         return email;
     }
 
-    public LoginRequestDTO setEmail(String email) {
+    public void setEmail(String email) {
         this.email = email;
-        return this;
     }
 
-    public String password() {
+    public String getPassword() {
         return password;
     }
 
-    public LoginRequestDTO setPassword(String password) {
+    public void setPassword(String password) {
         this.password = password;
-        return this;
     }
 }

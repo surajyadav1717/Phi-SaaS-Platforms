@@ -14,15 +14,20 @@ public class Product {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @Column(name = "product_name", nullable = false)
+        @Column(name = "name", nullable = false)
         private String name;
+
+        @Column(name = "sku")
+        private String sku;
 
         @Column(name = "brand")
         private String brand;
 
+
         @ManyToOne //
         @JoinColumn(name = "category_id")
         private Category category;
+
 
         @CreationTimestamp
         @Column(name="created_at", nullable = false, updatable = false)
@@ -32,14 +37,18 @@ public class Product {
         @Column(name = "updated_at")
         private LocalDateTime updatedAt;
 
-        public Product() {
-        }
+    public Product(Long id, String name, String sku, String brand, Category category, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.sku = sku;
+        this.brand = brand;
+        this.category = category;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
-        public Product(String name, String brand, Category category) {
-            this.name = name;
-            this.brand = brand;
-            this.category = category;
-        }
+    public Product() {
+    }
 
     public Long getId() {
         return id;
@@ -55,6 +64,14 @@ public class Product {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
     public String getBrand() {
