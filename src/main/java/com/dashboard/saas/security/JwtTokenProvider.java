@@ -122,64 +122,64 @@ public class JwtTokenProvider {
 
     }
 
-    public String generateRefreshToken(Long userId) {
-
-        try {
-
-            Date now = new Date();
-
-            Date expiryDate =
-                    new Date(now.getTime() + jwtRefreshTokenExpirationInMs);
-
-            // CLAIMS
-            JWTClaimsSet claimsSet =
-                    new JWTClaimsSet.Builder()
-                            .subject(String.valueOf(userId))
-                            .issueTime(now)
-                            .expirationTime(expiryDate)
-                            .build();
-
-            // SIGN JWT
-            SignedJWT signedJWT =
-                    new SignedJWT(
-                            new JWSHeader(JWSAlgorithm.HS256),
-                            claimsSet
-                    );
-
-            JWSSigner signer =
-                    new MACSigner(jwtSecret);
-
-            signedJWT.sign(signer);
-
-            // ENCRYPT JWT
-            JWEObject jweObject =
-                    new JWEObject(
-                            new JWEHeader.Builder(
-                                    JWEAlgorithm.DIR,
-                                    EncryptionMethod.A256CBC_HS512
-                            ).contentType("JWT").build(),
-
-                            new Payload(signedJWT)
-                    );
-
-            byte[] encryptionKey =
-                    Base64.getDecoder()
-                            .decode(jwtEncryptionKey);
-
-            jweObject.encrypt(
-                    new DirectEncrypter(encryptionKey)
-            );
-
-            return jweObject.serialize();
-
-        } catch (Exception e) {
-
-            throw new RuntimeException(
-                    "Error generating refresh token",
-                    e
-            );
-        }
-    }
+//    public String generateRefreshToken(Long userId) {
+//
+//        try {
+//
+//            Date now = new Date();
+//
+//            Date expiryDate =
+//                    new Date(now.getTime() + jwtRefreshTokenExpirationInMs);
+//
+//            // CLAIMS
+//            JWTClaimsSet claimsSet =
+//                    new JWTClaimsSet.Builder()
+//                            .subject(String.valueOf(userId))
+//                            .issueTime(now)
+//                            .expirationTime(expiryDate)
+//                            .build();
+//
+//            // SIGN JWT
+//            SignedJWT signedJWT =
+//                    new SignedJWT(
+//                            new JWSHeader(JWSAlgorithm.RS256),
+//                            claimsSet
+//                    );
+//
+//            JWSSigner signer =
+//                    new MACSigner(jwtSecret);
+//
+//            signedJWT.sign(signer);
+//
+//            // ENCRYPT JWT
+//            JWEObject jweObject =
+//                    new JWEObject(
+//                            new JWEHeader.Builder(
+//                                    JWEAlgorithm.DIR,
+//                                    EncryptionMethod.A256GCM
+//                            ).contentType("JWT").build(),
+//
+//                            new Payload(signedJWT)
+//                    );
+//
+//            byte[] encryptionKey =
+//                    Base64.getDecoder()
+//                            .decode(jwtEncryptionKey);
+//
+//            jweObject.encrypt(
+//                    new DirectEncrypter(encryptionKey)
+//            );
+//
+//            return jweObject.serialize();
+//
+//        } catch (Exception e) {
+//
+//            throw new RuntimeException(
+//                    "Error generating refresh token",
+//                    e
+//            );
+//        }
+//    }
     //validate token
 
     public boolean validateToken(String token) {

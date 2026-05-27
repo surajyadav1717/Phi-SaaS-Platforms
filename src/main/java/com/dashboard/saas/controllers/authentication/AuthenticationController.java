@@ -23,14 +23,14 @@ public class AuthenticationController {
     public BaseAPIResponse<RegisterResponseDTO> registerUsers(@RequestBody RegisterRequestDTO request) {
 
         RegisterResponseDTO response = authenticationService.registerUsers(request);
-        return new BaseAPIResponse<>("User Register Successfully",response, true);
+        return new BaseAPIResponse<>("User Register Successfully", response, true);
     }
 
     @PostMapping("/login")
     public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request) {
 
         LoginResponseDTO response = authenticationService.loginUsers(request);
-        return new BaseAPIResponse<>("User Login  Successfully",response, true);
+        return new BaseAPIResponse<>("User Login  Successfully", response, true);
     }
 
 
@@ -50,4 +50,23 @@ public class AuthenticationController {
     }
 
 
+    @PostMapping("/logout")
+    public BaseAPIResponse<String> logout(
+            @RequestBody RefreshTokenRequestDTO request
+    ) {
+
+        authenticationService.logout(
+                request.getRefreshToken() // refresh token revoked
+        );
+
+        return new BaseAPIResponse<>(
+                "Logout Successfully",
+                "Refresh Token Revoked",
+                true
+        );
+    }
 }
+
+
+
+
