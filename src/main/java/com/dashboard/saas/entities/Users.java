@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Entity
 @Table(name = "users_info")
@@ -37,6 +38,9 @@ public class Users {
         this.mobileNumber = mobileNumber;
         this.password = password;
         this.createdAt = createdAt;
+    }
+
+    public Users(Optional<Users> byEmail) {
     }
 
     public Long getId() {

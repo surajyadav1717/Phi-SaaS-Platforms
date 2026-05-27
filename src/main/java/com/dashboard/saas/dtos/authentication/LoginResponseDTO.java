@@ -7,6 +7,8 @@ public class LoginResponseDTO {
 
     private String accessToken;
 
+    private String refreshToken;
+
     private Long userId;
 
     private String email;
@@ -16,8 +18,10 @@ public class LoginResponseDTO {
     private Date expiresAt;
 
     // DEFAULT CONSTRUCTOR
+
     public LoginResponseDTO() {
     }
+
 
     // GETTERS
 
@@ -63,5 +67,13 @@ public class LoginResponseDTO {
 
     public void setExpiresAt(Date expiresAt) {
         this.expiresAt = expiresAt;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

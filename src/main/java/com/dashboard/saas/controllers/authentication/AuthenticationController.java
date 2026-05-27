@@ -1,9 +1,6 @@
 package com.dashboard.saas.controllers.authentication;
 
-import com.dashboard.saas.dtos.authentication.LoginRequestDTO;
-import com.dashboard.saas.dtos.authentication.LoginResponseDTO;
-import com.dashboard.saas.dtos.authentication.RegisterRequestDTO;
-import com.dashboard.saas.dtos.authentication.RegisterResponseDTO;
+import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
 import com.dashboard.saas.service.authentication.AuthenticationService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +31,22 @@ public class AuthenticationController {
 
         LoginResponseDTO response = authenticationService.loginUsers(request);
         return new BaseAPIResponse<>("User Login  Successfully",response, true);
+    }
+
+
+    @PostMapping("/refresh-token")
+    public BaseAPIResponse<LoginResponseDTO> refreshToken(
+            @RequestBody RefreshTokenRequestDTO request
+    ) {
+
+        LoginResponseDTO response =
+                authenticationService.refreshTokenExpiration(request);
+
+        return new BaseAPIResponse<>(
+                "Access Token Refreshed Successfully",
+                response,
+                true
+        );
     }
 
 
