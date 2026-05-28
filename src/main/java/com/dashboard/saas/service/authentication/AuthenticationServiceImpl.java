@@ -1,16 +1,14 @@
 package com.dashboard.saas.service.authentication;
-
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
-import org.apache.catalina.User;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -36,7 +34,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
 
     @Value("${app.jwt.refresh-token-expiration-ms}")
-    private Long refreshTokenExpiration;
+    private Long   refreshTokenExpiration;
 
     @Override
     public RegisterResponseDTO registerUsers(RegisterRequestDTO request) {
@@ -73,7 +71,8 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     @Override
     public LoginResponseDTO loginUsers(
-            LoginRequestDTO loginRequestDTO
+            LoginRequestDTO loginRequestDTO,
+            HttpServletRequest request
     ) {
 
         // STEP 1 → FIND USER
@@ -110,6 +109,12 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         // STEP 5 → SAVE REFRESH TOKEN IN DB
 
         String refreshToken = UUID.randomUUID().toString();
+        String userAgent = request.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
+
+        if(userAgent ==null){
+            userAgent = "Unknown";
+        }
+
         RefreshToken refreshTokenEntity =
                 new RefreshToken();
 
@@ -126,9 +131,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                         )
         );
         refreshTokenEntity.setRevoked(false);
-
+        refreshTokenEntity.setCreatedByIpAddress(request.getRemoteAddr());
+        refreshTokenEntity.setUserAgent(userAgent);
         refreshTokenRepository.save(refreshTokenEntity);
-
         // STEP 6 → GET ACCESS TOKEN EXPIRY
         Date expiry =
                 jwtTokenProvider.getTokenExpiration(accessToken);
@@ -143,64 +148,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         response.setEmail(user.getEmail());
         response.setFullName(user.getName());
         response.setExpiresAt(expiry);
-
         return response;
     }
-   // @Override
-//    public LoginResponseDTO refreshToken(LoginRequestDTO loginRequestDTO) {
-//
-//        Optional<Users> user = Optional.ofNullable(userRepository.findByEmail(loginRequestDTO.getEmail())
-//                .orElseThrow(() -> new RuntimeException("Invalid Email")));
-//
-//        Users users = new Users(Optional.of(user.get()));
-//
-//
-//        boolean passwordMatches =
-//                passwordEncoder.matches(
-//                        loginRequestDTO.getPassword(),
-//                        users.getPassword()
-//                );
-//
-//        if (!passwordMatches) {
-//
-//            throw new RuntimeException("Invalid Password");
-//        }
-//        ;
-//
-//        String accessToken = jwtTokenProvider.generateToken(
-//                users.getId(),
-//                users.getEmail(),
-//                users.getName()
-//        );
-//
-//        String refreshToken = jwtTokenProvider.generateRefreshToken(
-//                user.get().getId()
-//
-//        );
-//
-//        RefreshToken refreshTokenEntity = new RefreshToken();
-//        refreshTokenEntity.setRefresh_token(refreshToken);
-//        refreshTokenEntity.setUser(users);
-//        refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
-//
-//        refreshTokenEntity.setRevoked(false);
-//        refreshTokenRepository.save(refreshTokenEntity);
-//
-//
-//        LoginResponseDTO  responseDTO = new LoginResponseDTO();
-//
-//        responseDTO.setAccessToken(accessToken);
-//        responseDTO.setRefreshToken(refreshToken);
-//
-//
-//        responseDTO.setExpiresAt(
-//                jwtTokenProvider.getTokenExpiration(accessToken)
-//        );
-//        responseDTO.setUserId(users.getId());
-//        responseDTO.setEmail(users.getEmail());
-//        responseDTO.setFullName(users.getName());
-//        return responseDTO;
-//    }
+
 
     @Override
     public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request) {

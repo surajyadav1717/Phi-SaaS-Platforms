@@ -33,16 +33,24 @@ public class RefreshToken {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name="created_by_ip_address")
+    private String createdByIpAddress;
+
+    @Column(name = "user_agent")
+    private  String UserAgent;
+
     public RefreshToken() {
     }
 
-    public RefreshToken(Long id, String refreshToken, Users user, LocalDateTime expiryDate, Boolean revoked, LocalDateTime createdAt) {
+    public RefreshToken(Long id, String refreshToken, Users user, LocalDateTime expiryDate, Boolean revoked, LocalDateTime createdAt ,String createdByIpAddress,String userAgent) {
         this.id = id;
         this.refreshToken = refreshToken;
         this.user = user;
         this.expiryDate = expiryDate;
         this.revoked = revoked;
         this.createdAt = createdAt;
+        this.createdByIpAddress = createdByIpAddress;
+        this.UserAgent = userAgent;
     }
 
     public Long getId() {
@@ -91,5 +99,21 @@ public class RefreshToken {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedByIpAddress() {
+        return createdByIpAddress;
+    }
+
+    public void setCreatedByIpAddress(String createdByIpAddress) {
+        this.createdByIpAddress = createdByIpAddress;
+    }
+
+    public String getUserAgent() {
+        return UserAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        UserAgent = userAgent;
     }
 }
