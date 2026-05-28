@@ -3,10 +3,13 @@ package com.dashboard.saas.controllers.authentication;
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
 import com.dashboard.saas.service.authentication.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.logging.Handler;
 
 @RestController
 @RequestMapping("/api/v1/authentication")
@@ -27,9 +30,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request) {
+    public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request , HttpServletRequest httpServletRequest) {
 
-        LoginResponseDTO response = authenticationService.loginUsers(request);
+        LoginResponseDTO response = authenticationService.loginUsers(request,httpServletRequest);
         return new BaseAPIResponse<>("User Login  Successfully", response, true);
     }
 
