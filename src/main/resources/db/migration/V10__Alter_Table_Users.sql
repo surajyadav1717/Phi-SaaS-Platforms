@@ -1,0 +1,11 @@
+ALTER TABLE users_info
+ADD COLUMN role VARCHAR(20) DEFAULT 'USER';
+
+UPDATE users_info SET role = 'USER' WHERE role IS NULL;
+
+ALTER TABLE users_info
+ALTER COLUMN role SET NOT NULL;
+
+ALTER TABLE users_info
+ADD CONSTRAINT chk_users_role
+CHECK (role IN ('USER', 'ADMIN', 'MANAGER'));

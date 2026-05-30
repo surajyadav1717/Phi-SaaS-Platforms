@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -32,13 +33,20 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
-
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS //  No sessions, we are using JWTs .. we are using stateless
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
 
                         // PUBLIC APIs
                         .requestMatchers(
                                 "/api/v1/authentication/register",
-                                "/api/v1/authentication/login"
+                                "/api/v1/authentication/login",
+                                "/api/v1/authentication/refresh-token",
+                                "/api/v1/authentication/logout"
+
                         ).permitAll()
 
                         // SECURED APIs
