@@ -209,5 +209,10 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         refreshTokenLogout.setRevoked(true);
         refreshTokenRepository.save(refreshTokenLogout);
     }
+
+    @Override
+    public void sendOtp(String email, String otp) {
+        x
+    }
 }
 
