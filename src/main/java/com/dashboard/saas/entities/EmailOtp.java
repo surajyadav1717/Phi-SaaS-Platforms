@@ -1,7 +1,6 @@
 package com.dashboard.saas.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -9,12 +8,15 @@ import java.time.LocalDateTime;
 @Entity
 public class EmailOtp {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Long id;
 
     private String email;
 
     private String otp;
 
+    @Column(name = "expiry_time")
     private LocalDateTime expiryTime;
 
     private Boolean verified;
