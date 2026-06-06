@@ -30,10 +30,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public BaseAPIResponse<LoginResponseDTO> loginUsers(@RequestBody LoginRequestDTO request , HttpServletRequest httpServletRequest) {
+    public BaseAPIResponse<OtpResponseDTO> loginUsers(@RequestBody LoginRequestDTO loginRequestDTO, HttpServletRequest request) {
 
-        LoginResponseDTO response = authenticationService.loginUsers(request,httpServletRequest);
-        return new BaseAPIResponse<>("User Login  Successfully", response, true);
+        OtpResponseDTO response = authenticationService.loginUsers(loginRequestDTO,request);
+        return new BaseAPIResponse<>("OTP Send Successfully ", response, true);
     }
 
 
@@ -49,6 +49,16 @@ public class AuthenticationController {
                 "Access Token Refreshed Successfully",
                 response,
                 true
+        );
+    }
+
+    @PostMapping("/verify-otp")
+    public BaseAPIResponse<LoginResponseDTO>
+    verifyOtp(@RequestBody VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest) {
+
+        LoginResponseDTO response = authenticationService.verifyOtp(request, httpServletRequest);
+
+        return new BaseAPIResponse<>("Login Successful", response, true
         );
     }
 

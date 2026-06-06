@@ -1,18 +1,22 @@
 package com.dashboard.saas.service.authentication;
 import com.dashboard.saas.dtos.authentication.*;
+import com.dashboard.saas.entities.EmailOtp;
 import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
+import com.dashboard.saas.repositories.EmailRepository;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class AuthenticationServiceImpl implements  AuthenticationService {
@@ -25,16 +29,22 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository) {
+    private final JavaMailSender javaMailSender;
+
+    private final EmailRepository emailRepository;
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.javaMailSender = javaMailSender;
+        this.emailRepository = emailRepository;
     }
 
 
     @Value("${app.jwt.refresh-token-expiration-ms}")
-    private Long   refreshTokenExpiration;
+    private Long refreshTokenExpiration;
 
     @Override
     public RegisterResponseDTO registerUsers(RegisterRequestDTO request) {
@@ -69,87 +79,123 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     }
 
-    @Override
-    public LoginResponseDTO loginUsers(
-            LoginRequestDTO loginRequestDTO,
-            HttpServletRequest request
-    ) {
 
-        // STEP 1 → FIND USER
+//    @Override
+//    public LoginResponseDTO loginUsers(
+//            LoginRequestDTO loginRequestDTO,
+//            HttpServletRequest request
+//    ) {
+//
+//        // STEP 1 → FIND USER
+//        Users user = userRepository
+//                .findByEmail(loginRequestDTO.getEmail())
+//                .orElseThrow(() ->
+//                        new RuntimeException("Invalid Email"));
+//
+//        // STEP 2 → MATCH PASSWORD
+//        boolean passwordMatched =
+//                passwordEncoder.matches(
+//                        loginRequestDTO.getPassword(),
+//                        user.getPassword()
+//                );
+//
+//        if (!passwordMatched) {
+//            throw new RuntimeException("Invalid Password");
+//        }
+//
+//        // STEP 3 → GENERATE ACCESS TOKEN
+//        String accessToken =
+//                jwtTokenProvider.generateToken(
+//                        user.getId(),
+//                        user.getEmail(),
+//                        user.getName()
+//                );
+//
+//        // STEP 4 → GENERATE REFRESH TOKEN
+////        String refreshToken =
+////                jwtTokenProvider.generateRefreshToken(
+////                        user.getId()
+////                );
+//
+//        // STEP 5 → SAVE REFRESH TOKEN IN DB
+//
+//        String refreshToken = UUID.randomUUID().toString();
+//        String userAgent = request.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
+//
+//        if(userAgent ==null){
+//            userAgent = "Unknown";
+//        }
+//
+//        RefreshToken refreshTokenEntity =
+//                new RefreshToken();
+//
+//        refreshTokenEntity.setRefreshToken(refreshToken);
+//        refreshTokenEntity.setUser(user);
+//
+
+    /// /        refreshTokenEntity.setExpiryDate(
+    /// /                LocalDateTime.now().plusDays(7)
+    /// /        );
+//        refreshTokenEntity.setExpiryDate(
+//                LocalDateTime.now()
+//                        .plusSeconds(
+//                                refreshTokenExpiration / 1000
+//                        )
+//        );
+//        refreshTokenEntity.setRevoked(false);
+//        refreshTokenEntity.setCreatedByIpAddress(request.getRemoteAddr());
+//        refreshTokenEntity.setUserAgent(userAgent);
+//        refreshTokenRepository.save(refreshTokenEntity);
+//        // STEP 6 → GET ACCESS TOKEN EXPIRY
+//        Date expiry =
+//                jwtTokenProvider.getTokenExpiration(accessToken);
+//
+//        // STEP 7 → PREPARE RESPONSE
+//        LoginResponseDTO response =
+//                new LoginResponseDTO();
+//
+//        response.setAccessToken(accessToken);
+//        response.setRefreshToken(refreshToken);
+//        response.setUserId(user.getId());
+//        response.setEmail(user.getEmail());
+//        response.setFullName(user.getName());
+//        response.setExpiresAt(expiry);
+//        return response;
+//    }
+    @Override
+    public OtpResponseDTO loginUsers(LoginRequestDTO loginRequestDTO, HttpServletRequest request) {
+
         Users user = userRepository
                 .findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(() ->
                         new RuntimeException("Invalid Email"));
 
-        // STEP 2 → MATCH PASSWORD
-        boolean passwordMatched =
+        boolean matched =
                 passwordEncoder.matches(
                         loginRequestDTO.getPassword(),
                         user.getPassword()
                 );
 
-        if (!passwordMatched) {
+        if (!matched) {
             throw new RuntimeException("Invalid Password");
         }
 
-        // STEP 3 → GENERATE ACCESS TOKEN
-        String accessToken =
-                jwtTokenProvider.generateToken(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getName()
-                );
-
-        // STEP 4 → GENERATE REFRESH TOKEN
-//        String refreshToken =
-//                jwtTokenProvider.generateRefreshToken(
-//                        user.getId()
-//                );
-
-        // STEP 5 → SAVE REFRESH TOKEN IN DB
-
-        String refreshToken = UUID.randomUUID().toString();
-        String userAgent = request.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
-
-        if(userAgent ==null){
-            userAgent = "Unknown";
-        }
-
-        RefreshToken refreshTokenEntity =
-                new RefreshToken();
-
-        refreshTokenEntity.setRefreshToken(refreshToken);
-        refreshTokenEntity.setUser(user);
-
-//        refreshTokenEntity.setExpiryDate(
-//                LocalDateTime.now().plusDays(7)
-//        );
-        refreshTokenEntity.setExpiryDate(
-                LocalDateTime.now()
-                        .plusSeconds(
-                                refreshTokenExpiration / 1000
+        String otp =
+                String.valueOf((ThreadLocalRandom.current()
+                        .nextInt(100000,
+                                999999
                         )
-        );
-        refreshTokenEntity.setRevoked(false);
-        refreshTokenEntity.setCreatedByIpAddress(request.getRemoteAddr());
-        refreshTokenEntity.setUserAgent(userAgent);
-        refreshTokenRepository.save(refreshTokenEntity);
-        // STEP 6 → GET ACCESS TOKEN EXPIRY
-        Date expiry =
-                jwtTokenProvider.getTokenExpiration(accessToken);
-
-        // STEP 7 → PREPARE RESPONSE
-        LoginResponseDTO response =
-                new LoginResponseDTO();
-
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
-        response.setUserId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setFullName(user.getName());
-        response.setExpiresAt(expiry);
-        return response;
+                ));
+        EmailOtp emailOtp = new EmailOtp();
+        emailOtp.setEmail(user.getEmail());
+        emailOtp.setOtp(otp);
+        emailOtp.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        emailOtp.setVerified(false);
+        emailOtp.setCreatedAt(LocalDateTime.now());
+        emailRepository.save(emailOtp);
+        return new OtpResponseDTO();
     }
+
 
 
     @Override
@@ -212,7 +258,61 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     @Override
     public void sendOtp(String email, String otp) {
-        x
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Your OTP Code");
+        message.setText("Your OTP code is: " + otp);
+
+        javaMailSender.send(message);
+
+    }
+
+    @Override
+    public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request ,HttpServletRequest httpServletRequest) {
+
+
+        EmailOtp emailOtp = emailRepository.findTopByEmailOrderByCreatedAtDesc(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("OTP Not Found for Email"));
+
+        if(emailOtp.getExpiryTime().isBefore(LocalDateTime.now())){
+            throw new RuntimeException("OTP Expired ! Please Request a New One");
+        }
+        if(!emailOtp.getOtp().equals(request.getOtp())){
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        Users user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+
+            String accessToken = jwtTokenProvider.generateToken(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getName()
+            );
+
+                String refreshToken = UUID.randomUUID().toString();
+                String userAgent = httpServletRequest.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
+
+        RefreshToken refreshTokenEntity = new RefreshToken();
+                refreshTokenEntity.setRefreshToken(refreshToken);
+                refreshTokenEntity.setUser(user);
+                refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
+                refreshTokenEntity.setCreatedByIpAddress(httpServletRequest.getRemoteAddr());
+                refreshTokenEntity.setUserAgent(userAgent);
+                refreshTokenEntity.setCreatedAt(LocalDateTime.now());
+                refreshTokenRepository.save(refreshTokenEntity);
+
+                LoginResponseDTO responseDTO = new LoginResponseDTO();
+                responseDTO.setAccessToken(accessToken);
+                responseDTO.setRefreshToken(refreshToken);
+                responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
+                responseDTO.setUserId(user.getId());
+                responseDTO.setEmail(user.getEmail());
+                responseDTO.setFullName(user.getName());
+                emailOtp.setVerified(true);
+                emailRepository.save(emailOtp);
+                return responseDTO;
     }
 }
 

@@ -4,6 +4,8 @@ public class OtpResponseDTO {
 
     private String message;
 
+    private String otp;
+
     public OtpResponseDTO() {
     }
 
@@ -21,5 +23,13 @@ public class OtpResponseDTO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
     }
 }

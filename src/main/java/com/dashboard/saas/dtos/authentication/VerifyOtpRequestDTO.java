@@ -5,6 +5,7 @@ public class VerifyOtpRequestDTO {
     private String email;
     private String otp;
 
+
     public VerifyOtpRequestDTO() {
     }
 

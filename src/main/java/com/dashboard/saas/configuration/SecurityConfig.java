@@ -45,7 +45,9 @@ public class SecurityConfig {
                                 "/api/v1/authentication/register",
                                 "/api/v1/authentication/login",
                                 "/api/v1/authentication/refresh-token",
-                                "/api/v1/authentication/logout"
+                                "/api/v1/authentication/logout",
+                                "/api/v1/authentication/verify-otp"
+
 
                         ).permitAll()
 
