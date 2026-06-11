@@ -199,7 +199,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
 
     @Override
-    public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request) {
+    public LoginResponseAccessToken refreshTokenExpiration(RefreshTokenRequestDTO request) {
 
         Optional<RefreshToken> refreshTokenEntity = Optional.ofNullable(refreshTokenRepository
                 .findByRefreshToken(request.getRefreshToken()
@@ -234,15 +234,10 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                         user.getName()
                 );
 
-        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        LoginResponseAccessToken loginResponseAccessToken = new LoginResponseAccessToken();
 
-        responseDTO.setAccessToken(newAccessToken);
-        responseDTO.setRefreshToken(request.getRefreshToken());
-        responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(newAccessToken));
-        responseDTO.setUserId(user.getId());
-        responseDTO.setEmail(user.getEmail());
-        responseDTO.setFullName(user.getName());
-        return responseDTO;
+        loginResponseAccessToken.setAccessToken(newAccessToken);
+        return loginResponseAccessToken;
     }
 
     @Override

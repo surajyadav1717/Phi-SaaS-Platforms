@@ -11,7 +11,7 @@ public interface AuthenticationService {
 
   public OtpResponseDTO loginUsers(LoginRequestDTO loginRequestDTO, HttpServletRequest request);
 
-    public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request);
+    public LoginResponseAccessToken refreshTokenExpiration(RefreshTokenRequestDTO request);
 
     public void logout(String refreshToken);
 
