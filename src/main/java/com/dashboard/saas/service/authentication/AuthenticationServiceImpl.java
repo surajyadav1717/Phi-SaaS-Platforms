@@ -7,14 +7,19 @@ import com.dashboard.saas.repositories.EmailRepository;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -35,7 +40,11 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final RedisOtpService redisOtpService;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService) {
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
+
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService, RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -43,6 +52,8 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         this.javaMailSender = javaMailSender;
         this.emailRepository = emailRepository;
         this.redisOtpService = redisOtpService;
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -183,6 +194,13 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
             throw new RuntimeException("Invalid Password");
         }
 
+        Long attempts = redisOtpService.incrementOtpAttempt(user.getEmail());
+
+        if (attempts > 3) {
+
+            throw new RuntimeException("Maximum OTP limit reached. Try again after 10 minutes");
+        }
+
         String otp =
                 String.valueOf((ThreadLocalRandom.current()
                         .nextInt(100000,
@@ -258,18 +276,18 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         refreshTokenLogout.setRevoked(true);
         refreshTokenRepository.save(refreshTokenLogout);
     }
-
-    @Override
-    public void sendOtp(String email, String otp) {
-
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Your OTP Code");
-        message.setText("Your OTP code is: " + otp);
-
-        javaMailSender.send(message);
-
-    }
+//
+//    @Override
+//    public void sendOtp(String email, String otp) {
+//
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(email);
+//        message.setSubject("Your OTP Code");
+//        message.setText("Your OTP code is: " + otp);
+//
+//        javaMailSender.send(message);
+//
+//    }
 
 //    @Override
 //    public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest) {
@@ -344,7 +362,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                         request.getEmail()
                 );
 
-        System.err.println(storedOtp+"Otp Stored------");
+        System.err.println(storedOtp + "Otp Stored------");
 
         System.out.println(
                 "Request OTP = " + request.getOtp()
@@ -375,6 +393,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                 ).orElseThrow(
                         () -> new RuntimeException("User Not Found")
                 );
+
 
         // STEP 6 -> GENERATE ACCESS TOKEN
         String accessToken =
@@ -418,4 +437,97 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         responseDTO.setFullName(user.getName());
         return responseDTO;
     }
+
+
+    @Override
+    public OtpResponseDTO resendOtp(
+            ResendOtpRequestDTO request
+    ) {
+
+        Users user = userRepository.findByEmail(
+                request.getEmail()
+        ).orElseThrow(
+                () -> new RuntimeException("User Not Found")
+        );
+
+        Long attempts =
+                redisOtpService.incrementOtpAttempt(
+                        request.getEmail()
+                );
+
+        System.out.println(
+                "Resend Attempt Count = " + attempts
+        );
+
+
+        if (attempts > 3) {
+
+            throw new RuntimeException(
+                    "OTP resend limit reached. Try again after 10 minutes."
+            );
+        }
+
+        // Generate New OTP
+        String otp = String.valueOf(
+                100000 + new Random().nextInt(900000)
+        );
+
+        // Save New OTP In Redis
+        redisOtpService.saveOtp(
+                user.getEmail(),
+                otp
+        );
+
+        // Debug Only
+        System.out.println(
+                "Resend OTP = " + otp
+        );
+
+        OtpResponseDTO response =
+                new OtpResponseDTO();
+
+        response.setEmail(
+                user.getEmail()
+        );
+
+        return response;
+    }
+
+    @Override
+    public Users getUser(Long userId) throws Exception {
+
+        String key = "user:" + userId;
+
+
+        String cachedValue = redisTemplate.opsForValue().get(key);
+
+        if(cachedValue!=null){
+
+            System.out.println(cachedValue +"REDIS HIT");
+
+            return objectMapper.readValue(
+                    cachedValue,
+                    Users.class
+            );
+        }
+        System.out.println("Redis Miss");
+
+        Users user =
+                userRepository.findById(userId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "User Not Found"
+                                )
+                        );
+
+        redisTemplate.opsForValue().set(
+                key,
+                objectMapper.writeValueAsString(user),
+                Duration.ofMinutes(5)
+        );
+        return user;
+    }
+
+
 }
+

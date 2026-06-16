@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 
 @Service
 public class RedisOtpServiceImpl implements RedisOtpService{
@@ -34,5 +35,37 @@ public class RedisOtpServiceImpl implements RedisOtpService{
     public void deleteOtp(String email) {
 
         redisTemplate.delete(EMAIL_OTP_PREFIX+email);
+    }
+
+    @Override
+    public Long incrementOtpAttempt(String email) {
+
+
+        String key =
+                "otp:attempt:" + email;
+
+        Long count =redisTemplate.opsForValue().increment(key);
+
+        if(count == 1){
+
+            redisTemplate.expire(key,Duration.ofMinutes(3));
+        }
+
+         return  count;
+    }
+
+
+
+    @Override
+    public Long getOtpAttempt(String email) {
+
+        String key = "otp:attempt:"+email;
+
+        String value = redisTemplate.opsForValue().get(key);
+
+        return  value == null
+                ? 0
+                :Long.parseLong(value);
+
     }
 }

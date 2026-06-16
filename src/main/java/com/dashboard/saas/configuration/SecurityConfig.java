@@ -53,7 +53,9 @@ public class SecurityConfig {
                                 "/api/v1/authentication/refresh-token",
                                 "/api/v1/authentication/logout",
                                 "/api/v1/authentication/verify-otp",
-                                "/api/v1/redis/test"
+                                "/api/v1/redis/test",
+                                "/api/v1/authentication/resend-otp",
+                                "api/v1/authentication/user/{id}"
                         ).permitAll()
 
                         // SECURED APIs

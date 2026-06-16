@@ -2,12 +2,10 @@ package com.dashboard.saas.controllers.authentication;
 
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
+import com.dashboard.saas.entities.Users;
 import com.dashboard.saas.service.authentication.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.logging.Handler;
 
@@ -53,8 +51,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-otp")
-    public BaseAPIResponse<LoginResponseDTO>
-    verifyOtp(@RequestBody VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest) {
+    public BaseAPIResponse<LoginResponseDTO> verifyOtp(@RequestBody VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest) {
 
         LoginResponseDTO response = authenticationService.verifyOtp(request, httpServletRequest);
 
@@ -78,7 +75,35 @@ public class AuthenticationController {
                 true
         );
     }
+
+    @PostMapping("/resend-otp")
+    public BaseAPIResponse<OtpResponseDTO>
+    resendOtp(
+            @RequestBody
+            ResendOtpRequestDTO request
+    ){
+
+        OtpResponseDTO response =
+                authenticationService
+                        .resendOtp(
+                                request
+                        );
+
+        return new BaseAPIResponse<>(
+                "OTP Resent Successfully",
+                response,
+                true
+        );
+    }
+
+
+    @GetMapping("/user/{id}")
+    public Users getUser(@PathVariable Long id) throws Exception {
+
+        return authenticationService.getUser(id);
+    }
 }
+
 
 
 
