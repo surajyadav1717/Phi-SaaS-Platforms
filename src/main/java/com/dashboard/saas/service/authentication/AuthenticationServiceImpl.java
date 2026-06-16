@@ -33,13 +33,16 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final EmailRepository emailRepository;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository) {
+    private final RedisOtpService redisOtpService;
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
         this.javaMailSender = javaMailSender;
         this.emailRepository = emailRepository;
+        this.redisOtpService = redisOtpService;
     }
 
 
@@ -186,20 +189,25 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                                 999999
                         )
                 ));
-        EmailOtp emailOtp = new EmailOtp();
-        emailOtp.setEmail(user.getEmail());
-        emailOtp.setOtp(otp);
-        emailOtp.setExpiryTime(LocalDateTime.now().plusMinutes(5));
-        emailOtp.setVerified(false);
-        emailOtp.setCreatedAt(LocalDateTime.now());
-        emailRepository.save(emailOtp);
+
+        System.out.println(
+                "Generated OTP = " + otp
+        );
+//        EmailOtp emailOtp = new EmailOtp();
+//        emailOtp.setEmail(user.getEmail());
+//        emailOtp.setOtp(otp);
+//        emailOtp.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+//        emailOtp.setVerified(false);
+//        emailOtp.setCreatedAt(LocalDateTime.now());
+//        emailRepository.save(emailOtp);
+//        return new OtpResponseDTO();
+        redisOtpService.saveOtp(user.getEmail(), otp);
         return new OtpResponseDTO();
     }
 
 
-
     @Override
-    public LoginResponseDTO refreshTokenExpiration(RefreshTokenRequestDTO request) {
+    public LoginResponseAccessToken refreshTokenExpiration(RefreshTokenRequestDTO request) {
 
         Optional<RefreshToken> refreshTokenEntity = Optional.ofNullable(refreshTokenRepository
                 .findByRefreshToken(request.getRefreshToken()
@@ -210,9 +218,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
             throw new RuntimeException("Refresh Token Revoked");
         }
 
-        if(refreshTokenEntity.get().getExpiryDate().isBefore(LocalDateTime.now())){
+        if (refreshTokenEntity.get().getExpiryDate().isBefore(LocalDateTime.now())) {
 
-            throw  new RuntimeException("Refresh Token Expired");
+            throw new RuntimeException("Refresh Token Expired");
         }
 
 //        boolean  valid=jwtTokenProvider.validateToken(
@@ -234,22 +242,17 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                         user.getName()
                 );
 
-        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        LoginResponseAccessToken loginResponseAccessToken = new LoginResponseAccessToken();
 
-        responseDTO.setAccessToken(newAccessToken);
-        responseDTO.setRefreshToken(request.getRefreshToken());
-        responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(newAccessToken));
-        responseDTO.setUserId(user.getId());
-        responseDTO.setEmail(user.getEmail());
-        responseDTO.setFullName(user.getName());
-        return responseDTO;
+        loginResponseAccessToken.setAccessToken(newAccessToken);
+        return loginResponseAccessToken;
     }
 
     @Override
     public void logout(String refreshToken) {
 
-        RefreshToken refreshTokenLogout =refreshTokenRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(()->
+        RefreshToken refreshTokenLogout = refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() ->
                         new RuntimeException("Refresh Token Not Found"));
 
         refreshTokenLogout.setRevoked(true);
@@ -268,51 +271,151 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     }
 
+//    @Override
+//    public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest) {
+//
+
+//        EmailOtp emailOtp = emailRepository.findTopByEmailOrderByCreatedAtDesc(request.getEmail())
+//                .orElseThrow(() -> new RuntimeException("OTP Not Found for Email"));
+//
+//        if(emailOtp.getExpiryTime().isBefore(LocalDateTime.now())){
+//            throw new RuntimeException("OTP Expired ! Please Request a New One");
+//        }
+//        if(!emailOtp.getOtp().equals(request.getOtp())){
+//            throw new RuntimeException("Invalid OTP");
+//        }
+//
+//        Users user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new RuntimeException("User Not Found"));
+//
+//            String accessToken = jwtTokenProvider.generateToken(
+//                    user.getId(),
+//                    user.getEmail(),
+//                    user.getName()
+//            );
+//
+//                String refreshToken = UUID.randomUUID().toString();
+//                String userAgent = httpServletRequest.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
+//
+//        RefreshToken refreshTokenEntity = new RefreshToken();
+//                refreshTokenEntity.setRefreshToken(refreshToken);
+//                refreshTokenEntity.setUser(user);
+//                refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
+//                refreshTokenEntity.setCreatedByIpAddress(httpServletRequest.getRemoteAddr());
+//                refreshTokenEntity.setUserAgent(userAgent);
+//                refreshTokenEntity.setCreatedAt(LocalDateTime.now());
+//                refreshTokenRepository.save(refreshTokenEntity);
+//
+//                LoginResponseDTO responseDTO = new LoginResponseDTO();
+//                responseDTO.setAccessToken(accessToken);
+//                responseDTO.setRefreshToken(refreshToken);
+//                responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
+//                responseDTO.setUserId(user.getId());
+//                responseDTO.setEmail(user.getEmail());
+//                responseDTO.setFullName(user.getName());
+//                emailOtp.setVerified(true);
+//               // emailRepository.save(emailOtp);
+//                String storedOtp = redisOtpService.getOtp(request.getEmail());
+//
+//                if(storedOtp != null && storedOtp.equals(request.getOtp())){
+//                    throw  new RuntimeException("OTP Expired");
+//                }
+//
+//                    if(!storedOtp.equals(request.getOtp())){
+//
+//                        throw new RuntimeException(
+//                                "Invalid OTP"
+//                        );
+//                    }
+//
+//                    redisOtpService.deleteOtp(request.getEmail());
+//                return responseDTO;
+//
+//}
+
+
     @Override
-    public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request ,HttpServletRequest httpServletRequest) {
+    public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest
+    ) {
 
+        // STEP 1 -> GET OTP FROM REDIS
+        String storedOtp =
+                redisOtpService.getOtp(
+                        request.getEmail()
+                );
 
-        EmailOtp emailOtp = emailRepository.findTopByEmailOrderByCreatedAtDesc(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("OTP Not Found for Email"));
+        System.err.println(storedOtp+"Otp Stored------");
 
-        if(emailOtp.getExpiryTime().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("OTP Expired ! Please Request a New One");
-        }
-        if(!emailOtp.getOtp().equals(request.getOtp())){
-            throw new RuntimeException("Invalid OTP");
-        }
+        System.out.println(
+                "Request OTP = " + request.getOtp()
+        );
+        // STEP 2 -> OTP EXPIRED
+        if (storedOtp == null) {
 
-        Users user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
-
-            String accessToken = jwtTokenProvider.generateToken(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getName()
+            throw new RuntimeException(
+                    "OTP Expired ! Please Request a New One"
             );
+        }
 
-                String refreshToken = UUID.randomUUID().toString();
-                String userAgent = httpServletRequest.getHeader("User-Agent"); // Yeh User-Agent By Default hai  header se user ka browser ya device information milta hai
+        // STEP 3 -> OTP MISMATCH
+        if (!storedOtp.equals(request.getOtp())) {
 
+            throw new RuntimeException(
+                    "Invalid OTP"
+            );
+        }
+
+        // STEP 4 -> DELETE OTP (ONE TIME USE)
+        //redisOtpService.deleteOtp(request.getEmail());
+
+        // STEP 5 -> FIND USER
+        Users user =
+                userRepository.findByEmail(
+                        request.getEmail()
+                ).orElseThrow(
+                        () -> new RuntimeException("User Not Found")
+                );
+
+        // STEP 6 -> GENERATE ACCESS TOKEN
+        String accessToken =
+                jwtTokenProvider.generateToken(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName()
+                );
+
+        // STEP 7 -> GENERATE REFRESH TOKEN
+        String refreshToken =
+                UUID.randomUUID().toString();
+
+        String userAgent =
+                httpServletRequest.getHeader(
+                        "User-Agent"
+                );
+
+        // STEP 8 -> SAVE REFRESH TOKEN
         RefreshToken refreshTokenEntity = new RefreshToken();
-                refreshTokenEntity.setRefreshToken(refreshToken);
-                refreshTokenEntity.setUser(user);
-                refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
-                refreshTokenEntity.setCreatedByIpAddress(httpServletRequest.getRemoteAddr());
-                refreshTokenEntity.setUserAgent(userAgent);
-                refreshTokenEntity.setCreatedAt(LocalDateTime.now());
-                refreshTokenRepository.save(refreshTokenEntity);
 
-                LoginResponseDTO responseDTO = new LoginResponseDTO();
-                responseDTO.setAccessToken(accessToken);
-                responseDTO.setRefreshToken(refreshToken);
-                responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
-                responseDTO.setUserId(user.getId());
-                responseDTO.setEmail(user.getEmail());
-                responseDTO.setFullName(user.getName());
-                emailOtp.setVerified(true);
-                emailRepository.save(emailOtp);
-                return responseDTO;
+        refreshTokenEntity.setRefreshToken(refreshToken);
+        refreshTokenEntity.setUser(user);
+        refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusDays(7));
+        refreshTokenEntity.setCreatedAt(LocalDateTime.now());
+        refreshTokenEntity.setCreatedByIpAddress(httpServletRequest.getRemoteAddr());
+        refreshTokenEntity.setUserAgent(userAgent);
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        // STEP 9 -> RESPONSE
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+
+        responseDTO.setAccessToken(accessToken);
+
+        responseDTO.setRefreshToken(refreshToken);
+        responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
+        responseDTO.setUserId(user.getId());
+
+        responseDTO.setEmail(user.getEmail());
+
+        responseDTO.setFullName(user.getName());
+        return responseDTO;
     }
 }
-

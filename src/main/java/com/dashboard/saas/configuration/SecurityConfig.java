@@ -40,15 +40,20 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
 
-                        // PUBLIC APIs
+
+
+//                        .requestMatchers(
+//                                "/api/v1/redis/test"  // TO Hardcode to Ignore this endpoint
+//                        ).denyAll()
+
+                                // PUBLIC APIs
                         .requestMatchers(
                                 "/api/v1/authentication/register",
                                 "/api/v1/authentication/login",
                                 "/api/v1/authentication/refresh-token",
                                 "/api/v1/authentication/logout",
-                                "/api/v1/authentication/verify-otp"
-
-
+                                "/api/v1/authentication/verify-otp",
+                                "/api/v1/redis/test"
                         ).permitAll()
 
                         // SECURED APIs

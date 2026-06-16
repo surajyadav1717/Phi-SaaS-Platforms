@@ -38,11 +38,11 @@ public class AuthenticationController {
 
 
     @PostMapping("/refresh-token")
-    public BaseAPIResponse<LoginResponseDTO> refreshToken(
+    public BaseAPIResponse<LoginResponseAccessToken> refreshToken(
             @RequestBody RefreshTokenRequestDTO request
     ) {
 
-        LoginResponseDTO response =
+        LoginResponseAccessToken response =
                 authenticationService.refreshTokenExpiration(request);
 
         return new BaseAPIResponse<>(
