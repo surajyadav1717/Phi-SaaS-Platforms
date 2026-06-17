@@ -1,18 +1,9 @@
 package com.dashboard.saas.dtos.authentication;
 
-public class OtpResponseDTO {
+public class ResendOtpRequestDTO {
 
-    private String message;
     private String email;
 
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 
     public String getEmail() {
         return email;
@@ -22,4 +13,3 @@ public class OtpResponseDTO {
         this.email = email;
     }
 }
-

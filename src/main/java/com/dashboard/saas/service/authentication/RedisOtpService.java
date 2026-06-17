@@ -7,4 +7,11 @@ public interface RedisOtpService {
     public String getOtp(String email);
 
     public void deleteOtp(String email);
+
+    public Long incrementOtpAttempt(String email);
+
+
+    //public boolean isResendCooldownActive(String email);
+
+   // public void startResendCooldown(String email);
 }

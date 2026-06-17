@@ -1,17 +1,16 @@
 package com.dashboard.saas.dtos.authentication;
 
-public class OtpResponseDTO {
+public class UpdateUserRequestDTO {
 
-    private String message;
+    private String name;
     private String email;
 
-
-    public String getMessage() {
-        return message;
+    public String getName() {
+        return name;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -22,4 +21,3 @@ public class OtpResponseDTO {
         this.email = email;
     }
 }
-
