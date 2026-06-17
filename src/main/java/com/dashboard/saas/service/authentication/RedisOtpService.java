@@ -12,5 +12,7 @@ public interface RedisOtpService {
 
     public Long getOtpAttempt(String email);
 
+    public boolean isResendCooldownActive(String email);
 
+    public void startResendCooldown(String email);
 }
