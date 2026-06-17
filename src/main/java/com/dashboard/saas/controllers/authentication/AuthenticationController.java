@@ -7,8 +7,6 @@ import com.dashboard.saas.service.authentication.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.logging.Handler;
-
 @RestController
 @RequestMapping("/api/v1/authentication")
 public class AuthenticationController {
@@ -101,6 +99,13 @@ public class AuthenticationController {
     public Users getUser(@PathVariable Long id) throws Exception {
 
         return authenticationService.getUser(id);
+    }
+
+    @PutMapping("/update-user/{userId}")
+    public Users updateUser(@PathVariable Long userId,
+                            @RequestBody UpdateUserRequestDTO request) {
+
+        return authenticationService.updateUser(userId, request);
     }
 }
 

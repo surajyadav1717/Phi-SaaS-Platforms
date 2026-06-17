@@ -1,17 +1,16 @@
 package com.dashboard.saas.service.authentication;
 import com.dashboard.saas.dtos.authentication.*;
-import com.dashboard.saas.entities.EmailOtp;
 import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
 import com.dashboard.saas.repositories.EmailRepository;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -494,10 +493,15 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
     }
 
     @Override
-    public Users getUser(Long userId) throws Exception {
+    public Users getUser(Long userId) throws Exception, JsonProcessingException {
 
         String key = "user:" + userId;
 
+//        ObjectMapper converts Java objects into JSON strings
+//                (writeValueAsString) before caching.
+//
+//        When retrieving data, ObjectMapper converts JSON strings
+//        back into Java objects (readValue).
 
         String cachedValue = redisTemplate.opsForValue().get(key);
 
@@ -507,6 +511,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
             return objectMapper.readValue(
                     cachedValue,
+
                     Users.class
             );
         }
@@ -526,6 +531,26 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                 Duration.ofMinutes(5)
         );
         return user;
+    }
+
+    @Override
+    public Users updateUser(Long userId, UpdateUserRequestDTO request) {
+
+        Users users = userRepository.findById(userId).orElseThrow( () -> new RuntimeException("User Not Found"));
+
+        users.setName(request.getName());
+        users.setEmail(request.getEmail());
+
+        Users updateUser= userRepository.save(users);
+
+        //cache eviction
+        redisTemplate.delete("user:"+userId);
+
+        System.out.println(
+                "CACHE EVICTED : user:" + userId
+        );
+
+        return updateUser;
     }
 
 

@@ -19,4 +19,6 @@ public interface AuthenticationService {
     public OtpResponseDTO resendOtp(ResendOtpRequestDTO request);
 
      public Users getUser(Long userId) throws Exception ;
+
+    public Users updateUser(Long userId, UpdateUserRequestDTO request);
 }
