@@ -441,13 +441,13 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
     @Override
     public OtpResponseDTO resendOtp(ResendOtpRequestDTO request) {
 
-        if(redisOtpService.isResendCooldownActive(
-                request.getEmail()
-        )){
-            throw new RuntimeException(
-                    "Please wait 30 seconds before requesting a new OTP"
-            );
-        }
+//        if(redisOtpService.isResendCooldownActive(
+//                request.getEmail()
+//        )){
+//            throw new RuntimeException(
+//                    "Please wait 10 seconds before requesting a new OTP"
+//            );
+//        }
 
         Users user = userRepository.findByEmail(
                 request.getEmail()
@@ -483,9 +483,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                 otp
         );
 
-        redisOtpService.startResendCooldown(
-                user.getEmail()
-        );
+//        redisOtpService.startResendCooldown(
+//                user.getEmail()
+//        );
 
         // Debug Only
         System.out.println(

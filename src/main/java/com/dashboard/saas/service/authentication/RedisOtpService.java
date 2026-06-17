@@ -10,9 +10,8 @@ public interface RedisOtpService {
 
     public Long incrementOtpAttempt(String email);
 
-    public Long getOtpAttempt(String email);
 
-    public boolean isResendCooldownActive(String email);
+    //public boolean isResendCooldownActive(String email);
 
-    public void startResendCooldown(String email);
+   // public void startResendCooldown(String email);
 }

@@ -11,7 +11,6 @@ import java.util.logging.LogManager;
 public class RedisOtpServiceImpl implements RedisOtpService{
 
     private static final String EMAIL_OTP_PREFIX = "email:otp:";
-    private static final String OTP_PREFIX = "email:otp:";
     private static final String OTP_COOLDOWN_PREFIX = "otp:cooldown:";
 
     private final RedisTemplate<String,String> redisTemplate;
@@ -55,39 +54,24 @@ public class RedisOtpServiceImpl implements RedisOtpService{
          return  count;
     }
 
-
-
-    @Override
-    public Long getOtpAttempt(String email) {
-
-        String key = "otp:attempt:"+email;
-
-        String value = redisTemplate.opsForValue().get(key);
-
-        return  value == null
-                ? 0
-                :Long.parseLong(value);
-
-    }
-
-    //resend otp
-    public boolean isResendCooldownActive(String email) {
-
-        return Boolean.TRUE.equals(
-                redisTemplate.hasKey(
-                        OTP_COOLDOWN_PREFIX + email
-                )
-        );
-    }
-
-    public void startResendCooldown(
-            String email
-    ) {
-
-        redisTemplate.opsForValue().set(
-                OTP_COOLDOWN_PREFIX + email,
-                "ACTIVE",
-                Duration.ofSeconds(30)
-        );
-        }
+//    //resend otp
+//    public boolean isResendCooldownActive(String email) {
+//
+//        return Boolean.TRUE.equals(
+//                redisTemplate.hasKey(
+//                        OTP_COOLDOWN_PREFIX + email
+//                )
+//        );
+//    }
+//
+//    public void startResendCooldown(
+//            String email
+//    ) {
+//
+//        redisTemplate.opsForValue().set(
+//                OTP_COOLDOWN_PREFIX + email,
+//                "ACTIVE",
+//                Duration.ofSeconds(10)
+//        );
+//        }
 }
