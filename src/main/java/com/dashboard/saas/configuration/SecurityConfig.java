@@ -56,7 +56,8 @@ public class SecurityConfig {
                                 "/api/v1/redis/test",
                                 "/api/v1/authentication/resend-otp",
                                 "api/v1/authentication/user/{id}",
-                                "api/v1/authentication/update-user/{userId}"
+                                "api/v1/authentication/update-user/{userId}",
+                                "api/v1/authentication/sessions/{userId}"
                         ).permitAll()
 
                         // SECURED APIs

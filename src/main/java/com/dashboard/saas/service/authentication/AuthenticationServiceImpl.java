@@ -6,17 +6,19 @@ import com.dashboard.saas.repositories.EmailRepository;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -502,10 +504,10 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         return response;
     }
 
-    @Override
-    public Users getUser(Long userId) throws Exception, JsonProcessingException {
+    // @Override
+    // public Users getUser(Long userId) throws Exception, JsonProcessingException {
 
-        String key = "user:" + userId;
+    //   String key = "user:" + userId;
 
 //        ObjectMapper converts Java objects into JSON strings
 //                (writeValueAsString) before caching.
@@ -513,48 +515,73 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 //        When retrieving data, ObjectMapper converts JSON strings
 //        back into Java objects (readValue).
 
-        String cachedValue = redisTemplate.opsForValue().get(key);
+//        String cachedValue = redisTemplate.opsForValue().get(key);
+//
+//        if (cachedValue != null) {
+//
+//            System.out.println(cachedValue + "REDIS HIT");
+//
+//            return objectMapper.readValue(
+//                    cachedValue,
+//
+//                    Users.class
+//            );
+//        }
+//        System.out.println("Redis Miss");
+//
+//        Users user =
+//                userRepository.findById(userId)
+//                        .orElseThrow(
+//                                () -> new RuntimeException(
+//                                        "User Not Found"
+//                                )
+//                        );
+//
+//        redisTemplate.opsForValue().set(
+//                key,
+//                objectMapper.writeValueAsString(user),
+//                Duration.ofMinutes(5)
+//        );
+//        return user;
+    //}
 
-        if(cachedValue!=null){
+    /// spring boot ways
 
-            System.out.println(cachedValue +"REDIS HIT");
+    @Cacheable(
+            value = "users",
+            key = "#userId"
+    )
+    @Override
+    public Users getUser(Long userId) {
 
-            return objectMapper.readValue(
-                    cachedValue,
-
-                    Users.class
-            );
-        }
-        System.out.println("Redis Miss");
-
-        Users user =
-                userRepository.findById(userId)
-                        .orElseThrow(
-                                () -> new RuntimeException(
-                                        "User Not Found"
-                                )
-                        );
-
-        redisTemplate.opsForValue().set(
-                key,
-                objectMapper.writeValueAsString(user),
-                Duration.ofMinutes(5)
+        System.out.println(
+                "DB HIT"
         );
-        return user;
+           return userRepository.findById(userId)
+                    .orElseThrow(
+                            () -> new RuntimeException(
+                                    "User Not Found"
+                            )
+                    );
     }
 
+    @CacheEvict(
+            value = "users",
+            key = "#userId",
+            allEntries = true
+    )
     @Override
     public Users updateUser(Long userId, UpdateUserRequestDTO request) {
 
-        Users users = userRepository.findById(userId).orElseThrow( () -> new RuntimeException("User Not Found"));
+        Users users = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
 
         users.setName(request.getName());
         users.setEmail(request.getEmail());
 
-        Users updateUser= userRepository.save(users);
+        Users updateUser = userRepository.save(users);
 
         //cache eviction
-        redisTemplate.delete("user:"+userId);
+//        redisTemplate.delete("user:" + userId);
 
         System.out.println(
                 "CACHE EVICTED : user:" + userId
@@ -563,6 +590,25 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         return updateUser;
     }
 
+    @Override
+    public List<ActiveSessionDTO> getActiveSessions(Long userId) {
 
+        List<RefreshToken> session = refreshTokenRepository.findByUser_IdAndRevokedFalse(userId);
+
+        return session.stream().
+                map(sessions -> {
+
+                    ActiveSessionDTO activeSessionDTO = new ActiveSessionDTO();
+
+                    activeSessionDTO.setSessionId(sessions.getId());
+                    activeSessionDTO.setUserAgent(sessions.getUserAgent());
+                    activeSessionDTO.setIpAddress(sessions.getCreatedByIpAddress());
+                    activeSessionDTO.setLoginTime(sessions.getCreatedAt());
+                    activeSessionDTO.setExpiryDate(sessions.getExpiryDate());
+
+
+                    return activeSessionDTO;
+
+                }).toList();
+    }
 }
-
