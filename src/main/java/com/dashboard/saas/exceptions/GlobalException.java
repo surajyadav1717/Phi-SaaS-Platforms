@@ -1,5 +1,6 @@
 package com.dashboard.saas.exceptions;
 
+import com.dashboard.saas.exceptions.authentication.RateLimitReachedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -85,6 +86,12 @@ public class GlobalException {
     public ResponseEntity<String> handleGeneralException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An unexpected error occurred: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitReachedException.class)
+    public ResponseEntity<String> handleRateLimitException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                .body("Too Many Request : " + ex.getMessage());
     }
 
 

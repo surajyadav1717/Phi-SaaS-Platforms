@@ -4,6 +4,8 @@ import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.entities.Users;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 public interface AuthenticationService {
 
     public RegisterResponseDTO registerUsers(RegisterRequestDTO request);
@@ -18,7 +20,9 @@ public interface AuthenticationService {
 
     public OtpResponseDTO resendOtp(ResendOtpRequestDTO request);
 
-     public Users getUser(Long userId) throws Exception ;
+     public Users getUser(Long userId)  ;
 
     public Users updateUser(Long userId, UpdateUserRequestDTO request);
+
+    List<ActiveSessionDTO> getActiveSessions(Long userId);
 }

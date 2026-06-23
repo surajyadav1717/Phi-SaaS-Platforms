@@ -7,6 +7,8 @@ import com.dashboard.saas.service.authentication.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/authentication")
 public class AuthenticationController {
@@ -106,6 +108,16 @@ public class AuthenticationController {
                             @RequestBody UpdateUserRequestDTO request) {
 
         return authenticationService.updateUser(userId, request);
+    }
+
+
+    @GetMapping("/sessions/{userId}")
+    public BaseAPIResponse<List<ActiveSessionDTO>> getActiveSessions(@PathVariable Long userId) {
+
+        List<ActiveSessionDTO> response = authenticationService.getActiveSessions(userId);
+
+        return new BaseAPIResponse<>("Active Sessions Fetched Successfully", response, true
+        );
     }
 }
 

@@ -54,6 +54,39 @@ public class RedisOtpServiceImpl implements RedisOtpService{
          return  count;
     }
 
+    @Override
+    public Long incrementRequestCount(String key) {
+
+
+        Long count = redisTemplate.opsForValue()
+                .increment(key);
+
+
+        if(count !=null  && count==1){
+
+
+            redisTemplate.expire(key,Duration.ofMinutes(1));
+        }
+        return count;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //    //resend otp
 //    public boolean isResendCooldownActive(String email) {
 //
