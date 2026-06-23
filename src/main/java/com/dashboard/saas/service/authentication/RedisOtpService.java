@@ -10,6 +10,7 @@ public interface RedisOtpService {
 
     public Long incrementOtpAttempt(String email);
 
+    public Long incrementRequestCount(String key);
 
     //public boolean isResendCooldownActive(String email);
 
