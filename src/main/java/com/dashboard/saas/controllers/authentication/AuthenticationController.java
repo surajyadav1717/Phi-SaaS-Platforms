@@ -2,7 +2,9 @@ package com.dashboard.saas.controllers.authentication;
 
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
+import com.dashboard.saas.entities.AuditLog;
 import com.dashboard.saas.entities.Users;
+import com.dashboard.saas.service.AuditLogService;
 import com.dashboard.saas.service.authentication.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +17,11 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    public AuthenticationController(AuthenticationService authenticationService) {
+    private final AuditLogService auditLogService;
+
+    public AuthenticationController(AuthenticationService authenticationService, AuditLogService auditLogService) {
         this.authenticationService = authenticationService;
+        this.auditLogService = auditLogService;
     }
 
 
@@ -119,6 +124,9 @@ public class AuthenticationController {
         return new BaseAPIResponse<>("Active Sessions Fetched Successfully", response, true
         );
     }
+
+
+
 }
 
 

@@ -3,6 +3,8 @@ package com.dashboard.saas.controllers;
 
 import com.dashboard.saas.dtos.*;
 import com.dashboard.saas.dtos.baseresponse.BaseAPIResponse;
+import com.dashboard.saas.entities.AuditLog;
+import com.dashboard.saas.service.AuditLogService;
 import com.dashboard.saas.service.CategoryService;
 import com.dashboard.saas.service.ProductService;
 import com.dashboard.saas.service.ProductVariantService;
@@ -20,11 +22,14 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final ProductService productService;
     private final ProductVariantService variantService ;
+    private final AuditLogService auditLogService;
 
-    public CategoryController(CategoryService categoryService, ProductService productService, ProductVariantService variantService) {
+
+    public CategoryController(CategoryService categoryService, ProductService productService, ProductVariantService variantService, AuditLogService auditLogService) {
         this.categoryService = categoryService;
         this.productService = productService;
         this.variantService = variantService;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping("/create")
@@ -42,5 +47,12 @@ public class CategoryController {
         return new BaseAPIResponse<>("Product created successfully",response, true);
     }
 
+    @GetMapping("/audit-log/{userId}")
+    public BaseAPIResponse<List<AuditLog>> getUserAuditLogs(@PathVariable Long userId) {
+
+        List<AuditLog> response = auditLogService.getUserAuditLogs(userId);
+
+        return new BaseAPIResponse<>("Audit Log",response,true);
+    }
 
 }
