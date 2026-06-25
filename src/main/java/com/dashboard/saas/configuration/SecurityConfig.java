@@ -47,18 +47,10 @@ public class SecurityConfig {
 //                        ).denyAll()
 
                                 // PUBLIC APIs
-                        .requestMatchers(
-                                "/api/v1/authentication/register",
-                                "/api/v1/authentication/login",
-                                "/api/v1/authentication/refresh-token",
-                                "/api/v1/authentication/logout",
-                                "/api/v1/authentication/verify-otp",
-                                "/api/v1/redis/test",
-                                "/api/v1/authentication/resend-otp",
-                                "api/v1/authentication/user/{id}",
-                                "api/v1/authentication/update-user/{userId}",
-                                "api/v1/authentication/sessions/{userId}"
-                        ).permitAll()
+                                .requestMatchers(
+                                        "/api/v1/redis/test",
+                                        "/api/v1/authentication/**"
+                                ).permitAll()
 
                         // SECURED APIs
                         .anyRequest().authenticated()
