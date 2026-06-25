@@ -7,11 +7,13 @@ import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
 import com.dashboard.saas.security.JwtTokenProvider;
 import com.dashboard.saas.service.AuditLogService;
+import com.dashboard.saas.springevents.UserLoggedInEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,8 +48,9 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final AuditLogService auditLogService;
 
+    private final ApplicationEventPublisher publisher;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService, RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper, AuditLogService auditLogService) {
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService, RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper, AuditLogService auditLogService, ApplicationEventPublisher publisher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -58,6 +61,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.auditLogService = auditLogService;
+        this.publisher = publisher;
     }
 
 
@@ -426,10 +430,18 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                         "User-Agent"
                 );
 
-        auditLogService.saveAuditLog(user.getId(),
-                "OTP VERIFIED SUCCESSFULLY",
-                "OTP Verified  Successfully",
-                httpServletRequest.getRemoteAddr());
+//        auditLogService.saveAuditLog(user.getId(),
+//                "OTP VERIFIED SUCCESSFULLY",
+//                "OTP Verified  Successfully",
+//                httpServletRequest.getRemoteAddr());
+
+
+        //Yaha se Event Publish Hoo Raha hai
+        // And Then Is Event ke Against Listner Hogaa....handleUserLoginListner Yeh Method
+        publisher.publishEvent( new UserLoggedInEvent(
+                user.getId(),
+                user.getEmail(),
+                httpServletRequest.getRemoteAddr()));
 
 
         // STEP 8 -> SAVE REFRESH TOKEN
@@ -447,13 +459,10 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         LoginResponseDTO responseDTO = new LoginResponseDTO();
 
         responseDTO.setAccessToken(accessToken);
-
         responseDTO.setRefreshToken(refreshToken);
         responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
         responseDTO.setUserId(user.getId());
-
         responseDTO.setEmail(user.getEmail());
-
         responseDTO.setFullName(user.getName());
         return responseDTO;
     }
