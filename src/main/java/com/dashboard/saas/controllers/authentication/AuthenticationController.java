@@ -36,8 +36,10 @@ public class AuthenticationController {
     public BaseAPIResponse<OtpResponseDTO> loginUsers(@RequestBody LoginRequestDTO loginRequestDTO, HttpServletRequest request) {
 
         OtpResponseDTO response = authenticationService.loginUsers(loginRequestDTO,request);
-        return new BaseAPIResponse<>("OTP Send Successfully ", response, true);
+        return new BaseAPIResponse<>("OTP Send Successfully -Verify Through Redis ", response, true);
     }
+
+
 
 
     @PostMapping("/refresh-token")
@@ -49,7 +51,7 @@ public class AuthenticationController {
                 authenticationService.refreshTokenExpiration(request);
 
         return new BaseAPIResponse<>(
-                "Access Token Refreshed Successfully",
+                "Access Token Refreshed Succ  essfully",
                 response,
                 true
         );
@@ -60,7 +62,7 @@ public class AuthenticationController {
 
         LoginResponseDTO response = authenticationService.verifyOtp(request, httpServletRequest);
 
-        return new BaseAPIResponse<>("Login Successful", response, true
+        return new BaseAPIResponse<>("Login Successfully", response, true
         );
     }
 
