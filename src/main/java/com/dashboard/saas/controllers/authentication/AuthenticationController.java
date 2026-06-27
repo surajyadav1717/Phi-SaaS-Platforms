@@ -62,7 +62,7 @@ public class AuthenticationController {
 
         LoginResponseDTO response = authenticationService.verifyOtp(request, httpServletRequest);
 
-        return new BaseAPIResponse<>("Login Successfully", response, true
+        return new BaseAPIResponse<>("Login Success  fully", response, true
         );
     }
 
