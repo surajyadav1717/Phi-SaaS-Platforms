@@ -1,4 +1,5 @@
 package com.dashboard.saas.service.authentication;
+import com.dashboard.saas.aspect.LogExecutionTime;
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
@@ -185,6 +186,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 //        return response;
 //    }
     @Override
+    @LogExecutionTime
     public OtpResponseDTO loginUsers(LoginRequestDTO loginRequestDTO, HttpServletRequest request) {
 
         Users user = userRepository
@@ -371,6 +373,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
 
     @Override
+    @LogExecutionTime
     public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest
     ) {
 
