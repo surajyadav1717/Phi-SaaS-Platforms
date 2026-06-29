@@ -10,6 +10,7 @@ public interface AuthenticationService {
 
     public RegisterResponseDTO registerUsers(RegisterRequestDTO request);
 
+
   public OtpResponseDTO loginUsers(LoginRequestDTO loginRequestDTO, HttpServletRequest request);
 
     public LoginResponseAccessToken refreshTokenExpiration(RefreshTokenRequestDTO request);
