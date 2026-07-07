@@ -3,6 +3,7 @@ import com.dashboard.saas.aspect.LogExecutionTime;
 import com.dashboard.saas.dtos.authentication.*;
 import com.dashboard.saas.entities.RefreshToken;
 import com.dashboard.saas.entities.Users;
+import com.dashboard.saas.mapper.UserMapper;
 import com.dashboard.saas.repositories.EmailRepository;
 import com.dashboard.saas.repositories.RefreshTokenRepository;
 import com.dashboard.saas.repositories.UserRepository;
@@ -31,27 +32,20 @@ import java.util.concurrent.ThreadLocalRandom;
 public class AuthenticationServiceImpl implements  AuthenticationService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtTokenProvider jwtTokenProvider;
-
     private final RefreshTokenRepository refreshTokenRepository;
-
     private final JavaMailSender javaMailSender;
-
     private final EmailRepository emailRepository;
-
     private final RedisOtpService redisOtpService;
-
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
-
     private final AuditLogService auditLogService;
-
     private final ApplicationEventPublisher publisher;
+    private final UserMapper userMapper;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService, RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper, AuditLogService auditLogService, ApplicationEventPublisher publisher) {
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, JavaMailSender javaMailSender, EmailRepository emailRepository, RedisOtpService redisOtpService, RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper, AuditLogService auditLogService, ApplicationEventPublisher publisher, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -63,6 +57,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         this.objectMapper = objectMapper;
         this.auditLogService = auditLogService;
         this.publisher = publisher;
+        this.userMapper = userMapper;
     }
 
 
@@ -81,23 +76,27 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
             throw new RuntimeException("Mobile number already exists");
         }
 
-        Users users = new Users();
+//        Users users = new Users();
+//
+//        users.setName(request.getName());
+//        users.setEmail(request.getEmail());
+//        users.setMobileNumber(request.getMobileNumber());
+//        users.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        users.setName(request.getName());
-        users.setEmail(request.getEmail());
-        users.setMobileNumber(request.getMobileNumber());
+        Users users = userMapper.toEntity(request);
+
         users.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Users savedUser = userRepository.save(users);
 
-        RegisterResponseDTO response = new RegisterResponseDTO();
+//        RegisterResponseDTO response = new RegisterResponseDTO();
+//
+//        response.setUserId(savedUser.getId());
+//        response.setName(savedUser.getName());
+//        response.setEmail(savedUser.getEmail());
+//        response.setMobileNumber(savedUser.getMobileNumber());
 
-        response.setUserId(savedUser.getId());
-        response.setName(savedUser.getName());
-        response.setEmail(savedUser.getEmail());
-        response.setMobileNumber(savedUser.getMobileNumber());
-
-        return response;
+        return userMapper.toDTO(savedUser);
 
 
     }
