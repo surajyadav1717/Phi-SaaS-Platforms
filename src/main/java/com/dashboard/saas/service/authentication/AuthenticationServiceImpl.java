@@ -388,7 +388,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
                 "Request OTP = " + request.getOtp()
         );
         // STEP 2 -> OTP EXPIRED
-        if (storedOtp == null) {
+        if (storedOtp == null || storedOtp.isEmpty()) {
 
             throw new RuntimeException(
                     "OTP Expired ! Please Request a New One"
