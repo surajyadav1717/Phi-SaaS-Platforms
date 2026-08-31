@@ -9,7 +9,7 @@ public class LoginResponseDTO {
 
     private String refreshToken;
 
-    private Long userId;
+//    private Long userId;
 
     private String email;
 
@@ -30,9 +30,9 @@ public class LoginResponseDTO {
     }
 
 
-    public Long getUserId() {
-        return userId;
-    }
+//    public Long getUserId() {
+//        return userId;
+//    }
 
     public String getEmail() {
         return email;
@@ -48,10 +48,10 @@ public class LoginResponseDTO {
         this.accessToken = accessToken;
     }
 
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+//
+//    public void setUserId(Long userId) {
+//        this.userId = userId;
+//    }
 
     public void setEmail(String email) {
         this.email = email;
