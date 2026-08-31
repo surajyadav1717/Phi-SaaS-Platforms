@@ -6,7 +6,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-public class UserDetailsPrinciple  implements UserDetails {
+public class
+UserDetailsPrinciple  implements UserDetails {
 
 
     private String email;
@@ -26,6 +27,7 @@ public class UserDetailsPrinciple  implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
+
 
     @Override
     public String getPassword() {

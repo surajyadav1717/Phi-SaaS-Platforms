@@ -18,6 +18,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +54,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.javaMailSender = javaMailSender;
         this.emailRepository = emailRepository;
-        this.redisOtpService = redisOtpService;
+        this.redisOtpService = redisOtpService; 
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.auditLogService = auditLogService;
@@ -376,6 +378,10 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
     public LoginResponseDTO verifyOtp(VerifyOtpRequestDTO request, HttpServletRequest httpServletRequest
     ) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        System.err.println("Authentication = " + authentication);
+
         // STEP 1 -> GET OTP FROM REDIS
         String storedOtp =
                 redisOtpService.getOtp(
@@ -440,10 +446,14 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
 
         //Yaha se Event Publish Hoo Raha hai
         // And Then Is Event ke Against Listner Hogaa....handleUserLoginListner Yeh Method
-        publisher.publishEvent( new UserLoggedInEvent(
-                user.getId(),
-                user.getEmail(),
-                httpServletRequest.getRemoteAddr()));
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            publisher.publishEvent(new UserLoggedInEvent(
+                    user.getId(),
+                    user.getEmail(),
+                    httpServletRequest.getRemoteAddr()
+            ));
+        }
 
 
         // STEP 8 -> SAVE REFRESH TOKEN
@@ -463,7 +473,7 @@ public class AuthenticationServiceImpl implements  AuthenticationService {
         responseDTO.setAccessToken(accessToken);
         responseDTO.setRefreshToken(refreshToken);
         responseDTO.setExpiresAt(jwtTokenProvider.getTokenExpiration(accessToken));
-        responseDTO.setUserId(user.getId());
+//        responseDTO.setUserId(user.getId());
         responseDTO.setEmail(user.getEmail());
         responseDTO.setFullName(user.getName());
         return responseDTO;

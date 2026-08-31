@@ -15,13 +15,15 @@ public class RedisConfiguration {
         RedisConnectionFactory redisConnectionFactory
     ){
 
+        try {
         RedisTemplate <String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
+    }catch (Exception e){
+            e.printStackTrace();
+            return  null;
     }
-
-
-
+}
 }
 
