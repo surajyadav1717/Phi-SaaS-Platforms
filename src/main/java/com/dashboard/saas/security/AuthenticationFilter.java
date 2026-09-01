@@ -1,7 +1,5 @@
 package com.dashboard.saas.security;
 import com.dashboard.saas.entities.Users;
-import com.dashboard.saas.entities.principle.UserDetailsPrinciple;
-import com.dashboard.saas.entities.principle.UserPrincipal;
 import com.dashboard.saas.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -42,35 +41,40 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
                 if (valid) {
 
-                    long userId = jwtTokenProvider.userIdFromToken(token);
+                    long userId =
+                            jwtTokenProvider.userIdFromToken(token);
 
-                    Optional<Users> userOptional = userRepository.findById(userId);
+                    Optional<Users> userOptional =
+                            userRepository.findById(userId);
 
                     if (userOptional.isPresent()) {
+
                         Users user = userOptional.get();
 
-//                        UserPrincipal userPrincipal = new UserPrincipal(user.getId(), user.getEmail(), user.getName());
+                        CustomUserPrincipal principal =
+                                new CustomUserPrincipal(
+                                        user.getId(),
+                                        user.getEmail(),
+                                        user.getName(),
+                                        user.getPassword()
 
-                        UserPrincipal userPrincipal = new UserPrincipal();
-                        userPrincipal.setUserId((user.getId()));
-                        userPrincipal.setEmail(user.getEmail());
-                        userPrincipal.setFullName(user.getName());
+                                );
 
-                        UserDetailsPrinciple userDetailsPrinciple = new UserDetailsPrinciple(userPrincipal);
-
-                        UsernamePasswordAuthenticationToken authenticationToken =
-                                new UsernamePasswordAuthenticationToken(userDetailsPrinciple,
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        principal,
                                         null,
-                                        userDetailsPrinciple.getAuthorities());
+                                        principal.getAuthorities()
+                                );
 
-                        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        authentication.setDetails(
+                                new WebAuthenticationDetailsSource()
+                                        .buildDetails(request)
+                        );
 
-
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authenticationToken);
-
-
-
+                        SecurityContextHolder
+                                .getContext()
+                                .setAuthentication(authentication);
                     }
                 }
 

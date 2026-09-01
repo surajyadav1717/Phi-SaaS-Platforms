@@ -17,7 +17,7 @@ public class Notification {
 
     private String message;
 
-    private Boolean isRead = false;
+    public Boolean isRead = false;
 
     private LocalDateTime createdAt;
 
@@ -81,4 +81,6 @@ public class Notification {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+
 }

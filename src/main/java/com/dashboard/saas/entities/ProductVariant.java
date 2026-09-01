@@ -29,16 +29,20 @@ public class ProductVariant {
     @JsonIgnore
     private Product product;
 
+    @Column(name = "created_by",nullable = false)
+    private long createdBy;
+
 
     public ProductVariant() {
     }
 
-    public ProductVariant(Integer volumeMl, BigDecimal price, Boolean isActive, LocalDateTime createdAt, Product product) {
+    public ProductVariant(Integer volumeMl, BigDecimal price, Boolean isActive, LocalDateTime createdAt, Product product, long createdBy) {
         this.volumeMl = volumeMl;
         this.price = price;
         this.isActive = isActive;
         this.createdAt = createdAt;
         this.product = product;
+        this.createdBy = createdBy;
     }
 
     public Long getId() {
@@ -87,5 +91,13 @@ public class ProductVariant {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
     }
 }

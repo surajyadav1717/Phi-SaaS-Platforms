@@ -9,6 +9,7 @@ import com.dashboard.saas.exceptions.CategoryNotFoundException;
 import com.dashboard.saas.exceptions.ProductAlreadyExistException;
 import com.dashboard.saas.repositories.CategoryRepository;
 import com.dashboard.saas.repositories.ProductRepository;
+import com.dashboard.saas.security.SecurityContextHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,14 +19,20 @@ public class ProductServiceImpl implements ProductService {
 
     private final CategoryRepository categoryRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    private final SecurityContextHelper securityContextHelper;
+
+
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, SecurityContextHelper securityContextHelper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.securityContextHelper = securityContextHelper;
     }
 
 
     @Override
     public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) {
+
+        Long userId= SecurityContextHelper.getCurrentUserId();
 
         try {
             Category category = categoryRepository.findById(productRequestDTO.getCategoryId())
@@ -40,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
             product.setName(productRequestDTO.getName());
             product.setBrand(productRequestDTO.getBrand());
             product.setCategory(category);
+            product.setCreatedBy(userId);
             // product.setIsActive(true);
 
             Product saved = productRepository.save(product);
