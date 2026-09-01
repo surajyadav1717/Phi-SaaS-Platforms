@@ -18,15 +18,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public WebSocketConfig(WebSocketAuthInterceptor webSocketAuthInterceptor) {
         this.webSocketAuthInterceptor = webSocketAuthInterceptor;
     }
+
+
+
     @Override
     public void configureMessageBroker(
             MessageBrokerRegistry registry) {
 
-        registry.enableSimpleBroker("/queue", "/topic");
+        registry.enableSimpleBroker(
+                "/queue",
+                "/topic"
+        );
 
-        registry.setApplicationDestinationPrefixes("/app");
+        registry.setApplicationDestinationPrefixes(
+                "/app"
+        );
 
-        registry.setUserDestinationPrefix("/user");
+        registry.setUserDestinationPrefix(
+                "/user"
+        );
     }
 
     @Override
@@ -34,16 +44,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             StompEndpointRegistry registry) {
 
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOrigins(
+                        "http://localhost:3000"
+                );
     }
 
     @Override
     public void configureClientInboundChannel(
             ChannelRegistration registration) {
 
-        registration.interceptors(
-                webSocketAuthInterceptor
-        );
+        registration.interceptors(webSocketAuthInterceptor);
     }
 
 }

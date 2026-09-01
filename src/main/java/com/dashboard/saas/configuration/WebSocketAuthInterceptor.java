@@ -10,13 +10,18 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+
+@Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
-    private final JwtTokenProvider jwtTokenProvider ;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public WebSocketAuthInterceptor(JwtTokenProvider jwtTokenProvider) {
+    public WebSocketAuthInterceptor(
+            JwtTokenProvider jwtTokenProvider) {
+
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -32,28 +37,32 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 );
 
         if (accessor != null &&
-                StompCommand.CONNECT.equals(accessor.getCommand())) {
+                StompCommand.CONNECT.equals(
+                        accessor.getCommand())) {
 
             String authHeader =
-                    accessor.getFirstNativeHeader("Authorization");
+                    accessor.getFirstNativeHeader(
+                            "Authorization"
+                    );
 
             if (authHeader == null ||
                     !authHeader.startsWith("Bearer ")) {
 
                 throw new IllegalArgumentException(
-                        "Missing Authorization header"
+                        "Missing Authorization"
                 );
             }
 
             String token =
                     authHeader.substring(7);
 
-            Long username =
-                    jwtTokenProvider.userIdFromToken(token);
+            Long userId =
+                    jwtTokenProvider
+                            .userIdFromToken(token);
 
             Authentication authentication =
                     new UsernamePasswordAuthenticationToken(
-                            username,
+                            userId.toString(),
                             null,
                             Collections.emptyList()
                     );

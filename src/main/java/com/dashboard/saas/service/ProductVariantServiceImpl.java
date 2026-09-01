@@ -8,6 +8,7 @@ import com.dashboard.saas.exceptions.ProductNotFoundException;
 import com.dashboard.saas.exceptions.VariantAlreadyExistForML;
 import com.dashboard.saas.repositories.ProductRepository;
 import com.dashboard.saas.repositories.ProductVariantRepository;
+import com.dashboard.saas.security.SecurityContextHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class ProductVariantServiceImpl implements ProductVariantService{
     @Override
     public List<ProductVariantResponseDTO> addVariants(Long productId, List<ProductVariantRequestDTO> request) {
 
+        Long userId= SecurityContextHelper.getCurrentUserId();
         try {
 
 
@@ -51,6 +53,7 @@ public class ProductVariantServiceImpl implements ProductVariantService{
                 variant.setProduct(product);
                 variant.setVolumeMl(variantRequest.getVolumeMl());
                 variant.setPrice(variantRequest.getPrice());
+                variant.setCreatedBy(userId);
                 variants.add(variant);
             }
 
