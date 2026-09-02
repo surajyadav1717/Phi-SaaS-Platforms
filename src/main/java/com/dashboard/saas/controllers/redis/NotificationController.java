@@ -1,6 +1,7 @@
 package com.dashboard.saas.controllers.redis;
 
 
+import com.dashboard.saas.dtos.NotificationListResponseDTO;
 import com.dashboard.saas.dtos.NotificationResponseDTO;
 import com.dashboard.saas.entities.Notification;
 import com.dashboard.saas.repositories.NotificationRepository;
@@ -52,13 +53,11 @@ public class NotificationController {
     }
 
     @GetMapping("/get-unread")
-    List<NotificationResponseDTO> getUnreadNotifications(Long userId)  {
+    NotificationListResponseDTO getUnreadNotifications(Long userId)  {
 
         userId = securityContextHelper.getCurrentUserId();
 
-
-        return notificationService
-                .getUnreadNotifications(userId);
+        return notificationService.getUnreadNotifications(userId);
     }
 
 }
