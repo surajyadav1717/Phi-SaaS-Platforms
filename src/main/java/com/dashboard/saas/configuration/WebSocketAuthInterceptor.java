@@ -25,6 +25,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+
+
     @Override
     public Message<?> preSend(
             Message<?> message,
@@ -71,5 +73,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
 
         return message;
+
+
     }
+
+
+
 }

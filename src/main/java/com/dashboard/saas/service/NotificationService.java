@@ -1,6 +1,7 @@
 package com.dashboard.saas.service;
 
 
+import com.dashboard.saas.dtos.NotificationListResponseDTO;
 import com.dashboard.saas.dtos.NotificationResponseDTO;
 import com.dashboard.saas.entities.Notification;
 
@@ -17,7 +18,7 @@ public interface NotificationService {
             Long notificationId,
             Long userId);
 
-    public List<NotificationResponseDTO> getUnreadNotifications(Long userId);
+    public NotificationListResponseDTO getUnreadNotifications(Long userId);
 
 
 }

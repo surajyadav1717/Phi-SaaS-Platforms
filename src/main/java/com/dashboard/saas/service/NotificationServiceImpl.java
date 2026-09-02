@@ -2,6 +2,7 @@ package com.dashboard.saas.service;
 
 
 import com.dashboard.saas.configuration.WebSocketAuthInterceptor;
+import com.dashboard.saas.dtos.NotificationListResponseDTO;
 import com.dashboard.saas.dtos.NotificationResponseDTO;
 import com.dashboard.saas.entities.Notification;
 import com.dashboard.saas.repositories.NotificationRepository;
@@ -97,7 +98,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponseDTO> getUnreadNotifications(Long userId) {
+    public NotificationListResponseDTO getUnreadNotifications(Long userId) {
 
         List<Notification> notifications =
                 notificationRepository
@@ -108,20 +109,22 @@ public class NotificationServiceImpl implements NotificationService {
 
         for (Notification notification : notifications) {
 
-            NotificationResponseDTO dto =
-                    new NotificationResponseDTO();
+            NotificationResponseDTO dto = new NotificationResponseDTO();
 
             dto.setId(notification.getId());
-            dto.setTitle(notification.getTitle());
             dto.setMessage(notification.getMessage());
-            dto.setRead(notification.isRead);
+            dto.setTitle(notification.getTitle());
+            dto.setRead(notification.getRead());
             dto.setCreatedAt(notification.getCreatedAt());
 
             responseList.add(dto);
+
+
         }
-
-        return responseList;
+        NotificationListResponseDTO responseDTO = new NotificationListResponseDTO();
+        responseDTO.setCount(responseList.size());
+        responseDTO.setNotifications(responseList);
+        return responseDTO;
     }
-
 }
 
