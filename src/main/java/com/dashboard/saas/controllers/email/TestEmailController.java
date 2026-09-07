@@ -28,9 +28,7 @@ public class TestEmailController {
                 "your-email@gmail.com",
                 "Test Email",
                 "Hello! This is a test email from Spring Boot.",
-                userId
-
-        );
+                userId);
 
         return "Email sent successfully";
     }

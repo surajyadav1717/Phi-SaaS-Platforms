@@ -31,8 +31,7 @@ public class LoginNotificationListener {
                 event.getEmail(),
                 "New Login Detected",
                 "A New Login Was Detected On Your Account From IP Address: " + event.getIpAddress(),
-                event.getUserId()
-        );
+                event.getUserId());
     }
 }
 
