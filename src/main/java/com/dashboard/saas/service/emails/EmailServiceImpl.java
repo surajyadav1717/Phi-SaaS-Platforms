@@ -1,44 +1,59 @@
 package com.dashboard.saas.service.emails;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import com.dashboard.saas.entities.EmailDelivery;
+import com.dashboard.saas.enums.EmailStatus;
+import com.dashboard.saas.repositories.EmailDeliveryRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
 
-    private final JavaMailSender mailSender;
+    private final EmailSender mailSender;
 
-    public EmailServiceImpl(JavaMailSender mailSender) {
+    private final EmailDeliveryRepository emailDeliveryRepository;
+
+    public EmailServiceImpl(EmailSender mailSender, EmailDeliveryRepository emailDeliveryRepository) {
         this.mailSender = mailSender;
+        this.emailDeliveryRepository = emailDeliveryRepository;
     }
 
 
-    @Override
     @Async("emailTaskExecutor")
-    public void sendEmail(String to, String subject, String message, Long userId)  {
+    public void sendEmail(
+            String to,
+            String subject,
+            String message,
+            Long userId) {
+
+        EmailDelivery delivery = new EmailDelivery();
+
+        delivery.setUserId(userId);
+        delivery.setRecipient(to);
+        delivery.setSubject(subject);
+        delivery.setMessage(message);
+        delivery.setStatus(EmailStatus.PENDING);
+        delivery.setAttempts(0);
+        delivery.setCreatedAt(LocalDateTime.now());
+
+        delivery = emailDeliveryRepository.save(delivery);
 
         try {
 
-            SimpleMailMessage mail = new SimpleMailMessage();
-
-            mail.setTo(to);
-            mail.setSubject(subject);
-            mail.setText(message);
-
-            mailSender.send(mail);
-
-            System.out.println("EMAIL SENT SUCCESSFULLY");
+            mailSender.send(
+                    to,
+                    subject,
+                    message,
+                    delivery.getId()
+            );
 
         } catch (Exception e) {
 
-            System.out.println("EMAIL FAILED");
+            System.out.println("FINAL EMAIL FAILURE");
             e.printStackTrace();
-
-            throw e;
         }
     }
-
 
 }
