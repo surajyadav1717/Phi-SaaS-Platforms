@@ -1,6 +1,7 @@
 package com.dashboard.saas.controllers.razorpay;
-
 import com.dashboard.saas.dtos.CreatePaymentOrderRequest;
+import com.dashboard.saas.dtos.PaymentRequest;
+import com.dashboard.saas.dtos.ThirdPartyPaymentResponse;
 import com.dashboard.saas.service.payments.PaymentService;
 import com.razorpay.RazorpayException;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,13 @@ public class PaymentController {
         return ResponseEntity.ok(order);
     }
 
+    @PostMapping
+    public ResponseEntity<ThirdPartyPaymentResponse> createPayment(
+            @RequestBody PaymentRequest request) {
 
+        ThirdPartyPaymentResponse response =
+                paymentService.createPayment(request);
+
+        return ResponseEntity.ok(response);
+    }
 }

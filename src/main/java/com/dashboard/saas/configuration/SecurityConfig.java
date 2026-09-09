@@ -49,8 +49,10 @@ public class SecurityConfig {
                                 // PUBLIC APIs
                                 .requestMatchers(
                                         "/api/v1/redis/test",
-                                        "/api/v1/authentication/**"
-                                ).permitAll()
+                                        "/api/v1/authentication/**",
+                                        "/api/v1/payment"
+
+                ).permitAll()
 
                         // SECURED APIs
                         .anyRequest().authenticated()
